@@ -1,7 +1,9 @@
 flask
-cryptography
-bcrypt
+flask-bcrypt
+flask-sqlalchemy
+gunicorn
 pandas
 xlsxwriter
 pillow
-gunicorn
+cryptography
+bcrypt
