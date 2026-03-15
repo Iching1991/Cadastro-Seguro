@@ -1,3 +1,7 @@
 flask
-flask_sqlalchemy
-flask_bcrypt
+cryptography
+bcrypt
+pandas
+xlsxwriter
+pillow
+gunicorn
