@@ -7,17 +7,14 @@ class Config:
     # ─────────────────────────────────────────────
     # SEGURANÇA
     # ─────────────────────────────────────────────
-    SECRET_KEY = os.environ.get("SECRET_KEY", "troque-em-producao-use-variavel-de-ambiente")
+    SECRET_KEY = os.environ.get("SECRET_KEY", "troque-em-producao")
 
     # ─────────────────────────────────────────────
     # BANCO DE DADOS
-    # Usa PostgreSQL no Railway se DATABASE_URL
-    # estiver definida, senão cai para SQLite local
     # ─────────────────────────────────────────────
     _db_url = os.environ.get("DATABASE_URL", "")
 
-    # Railway retorna URLs postgres:// (legado),
-    # SQLAlchemy exige postgresql://
+    # Railway entrega postgres://, SQLAlchemy exige postgresql://
     if _db_url.startswith("postgres://"):
         _db_url = _db_url.replace("postgres://", "postgresql://", 1)
 
@@ -27,17 +24,17 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,   # reconecta se a conexão cair
-        "pool_recycle":  300,    # recicla conexões a cada 5 min
+        "pool_pre_ping": True,
+        "pool_recycle":  300,
     }
 
     # ─────────────────────────────────────────────
     # UPLOADS
     # ─────────────────────────────────────────────
     UPLOAD_FOLDER      = os.path.join(BASE_DIR, "uploads")
-    LOGO_FOLDER        = os.path.join(UPLOAD_FOLDER, "logos")
+    LOGO_FOLDER        = os.path.join(BASE_DIR, "uploads", "logos")
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB máximo por upload
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB
 
     # ─────────────────────────────────────────────
     # SESSÃO
