@@ -52,11 +52,11 @@ def allowed_file(filename: str) -> bool:
     return (
         "." in filename and
         filename.rsplit(".", 1)[1].lower()
-        in app.config.get("ALLOWED_EXTENSIONS", {"png", "jpg", "jpeg", "gif", "webp"})
+        in app.config.get("ALLOWED_EXTENSIONS", {"png", "jpg", "jpeg", "webp"})
     )
 
 
-def get_current_user() -> User | None:
+def get_current_user():
     return db.session.get(User, session.get("user_id"))
 
 
@@ -131,7 +131,6 @@ def register():
         senha = request.form.get("senha", "")
         conf  = request.form.get("confirmar_senha", "")
 
-        # Validações
         if not all([nome, email, senha, conf]):
             flash("Preencha todos os campos.", "warning")
             return redirect(url_for("register"))
@@ -176,7 +175,6 @@ def dashboard():
     user  = get_current_user()
     total = Clinic.query.count()
 
-    # Admin vê todas; operador vê só as suas
     if user.is_admin:
         recentes = Clinic.query.order_by(Clinic.id.desc()).limit(5).all()
     else:
@@ -233,12 +231,11 @@ def create_clinic():
             flash("Preencha todos os campos obrigatórios.", "warning")
             return redirect(url_for("create_clinic"))
 
-        # Logo (opcional)
         filename = None
         file = request.files.get("logo")
 
         if file and file.filename and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+            filename    = secure_filename(file.filename)
             logo_folder = app.config.get("LOGO_FOLDER", "uploads/logos")
             os.makedirs(logo_folder, exist_ok=True)
             file.save(os.path.join(logo_folder, filename))
@@ -274,7 +271,6 @@ def edit_clinic(id):
         flash("Parceiro não encontrado.", "danger")
         return redirect(url_for("clinics"))
 
-    # Só o dono ou admin pode editar
     if clinic.user_id != user.id and not user.is_admin:
         flash("Sem permissão para editar este parceiro.", "danger")
         return redirect(url_for("clinics"))
@@ -325,7 +321,7 @@ def delete_clinic(id):
 
 
 # ─────────────────────────────────────────────
-# PAINEL DO ADMIN — USUÁRIOS PENDENTES
+# ADMIN — GERENCIAR USUÁRIOS
 # ─────────────────────────────────────────────
 @app.route("/admin/users")
 @admin_required
