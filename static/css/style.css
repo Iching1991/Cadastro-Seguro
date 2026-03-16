@@ -2,109 +2,168 @@
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family: Arial, Helvetica, sans-serif;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 
-/* FUNDO COM LOGO */
+/* =============================
+BACKGROUND
+============================= */
 
 .login-page{
 
 height:100vh;
 
-background-image: url("../img/logo.png");
-
-background-repeat: no-repeat;
-
-background-position: center;
-
-background-size: 600px;
-
-background-color:#f4f6f9;
-
 display:flex;
-
 align-items:center;
-
 justify-content:center;
+
+background:#e9edf3;
+
+overflow:hidden;
 
 }
 
 
-/* camada escura para contraste */
+/* LOGO FUNDO */
 
-.login-overlay{
+.background{
+
+position:absolute;
 
 width:100%;
 height:100%;
 
+background-image: url("../img/logo.png");
+
+background-repeat:no-repeat;
+
+background-position:center;
+
+background-size:650px;
+
+opacity:0.25;
+
+filter: blur(2px);
+
+}
+
+
+/* =============================
+WRAPPER
+============================= */
+
+.login-wrapper{
+
+position:relative;
+
 display:flex;
 
 align-items:center;
-
 justify-content:center;
 
-background:rgba(255,255,255,0.6);
+width:100%;
 
 }
 
 
-/* caixa de login */
+/* =============================
+GLASS CARD
+============================= */
 
-.login-box{
+.login-card{
 
-width:350px;
+width:360px;
 
-background:white;
+padding:40px;
 
-padding:35px;
+border-radius:16px;
 
-border-radius:10px;
+background: rgba(255,255,255,0.25);
 
-box-shadow:0 10px 25px rgba(0,0,0,0.15);
+backdrop-filter: blur(20px);
+
+-webkit-backdrop-filter: blur(20px);
+
+border:1px solid rgba(255,255,255,0.4);
+
+box-shadow:0 15px 35px rgba(0,0,0,0.15);
 
 text-align:center;
 
-}
-
-
-/* título */
-
-.login-box h2{
-
-margin-bottom:20px;
+animation: fadeIn 0.8s ease;
 
 }
 
 
-/* inputs */
+/* =============================
+TITLE
+============================= */
 
-.login-box input{
+.login-card h2{
 
-width:100%;
+margin-bottom:25px;
+
+font-weight:600;
+
+color:#1f2937;
+
+}
+
+
+/* =============================
+FORM
+============================= */
+
+form{
+
+display:flex;
+
+flex-direction:column;
+
+gap:12px;
+
+}
+
+
+/* INPUT */
+
+input{
 
 padding:12px;
 
-margin-bottom:10px;
+border-radius:8px;
 
-border-radius:6px;
+border:1px solid rgba(0,0,0,0.1);
 
-border:1px solid #ccc;
+font-size:14px;
+
+background: rgba(255,255,255,0.9);
+
+transition: all 0.2s ease;
+
+}
+
+input:focus{
+
+outline:none;
+
+border-color:#2563eb;
+
+box-shadow:0 0 0 2px rgba(37,99,235,0.15);
 
 }
 
 
-/* botão */
+/* BUTTON */
 
-.login-box button{
-
-width:100%;
+button{
 
 padding:12px;
 
 border:none;
 
-border-radius:6px;
+border-radius:8px;
 
 background:#2563eb;
 
@@ -114,16 +173,22 @@ font-size:15px;
 
 cursor:pointer;
 
+transition: all 0.25s ease;
+
 }
 
-.login-box button:hover{
+button:hover{
 
 background:#1d4ed8;
 
+transform: translateY(-1px);
+
 }
 
 
-/* mensagens */
+/* =============================
+FLASH
+============================= */
 
 .flash{
 
@@ -148,5 +213,28 @@ color:#dc2626;
 .flash .warning{
 
 color:#f59e0b;
+
+}
+
+
+/* =============================
+ANIMATION
+============================= */
+
+@keyframes fadeIn{
+
+from{
+
+opacity:0;
+transform: translateY(20px);
+
+}
+
+to{
+
+opacity:1;
+transform: translateY(0);
+
+}
 
 }
