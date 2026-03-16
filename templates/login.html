@@ -1,1 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
 
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login - Cadastro Seguro</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f9;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.login-container{
+    background:white;
+    padding:40px;
+    border-radius:10px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+    width:350px;
+}
+
+h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    margin-top:20px;
+    background:#2c7be5;
+    border:none;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1a5dcc;
+}
+
+.link{
+    text-align:center;
+    margin-top:15px;
+}
+
+.error{
+    color:red;
+    text-align:center;
+    margin-top:10px;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="login-container">
+
+<h2>Login</h2>
+
+<form method="POST" action="/login">
+
+<input 
+type="email" 
+name="email" 
+placeholder="Email"
+required
+>
+
+<input 
+type="password"
+name="senha"
+placeholder="Senha"
+required
+>
+
+<button type="submit">
+
+Entrar
+
+</button>
+
+</form>
+
+
+{% if error %}
+
+<p class="error">
+
+{{ error }}
+
+</p>
+
+{% endif %}
+
+
+<div class="link">
+
+<a href="/cadastro">
+
+Criar conta
+
+</a>
+
+</div>
+
+
+</div>
+
+</body>
+
+</html>
