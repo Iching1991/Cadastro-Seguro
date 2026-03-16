@@ -1,123 +1,104 @@
-/* ============================
-RESET
-============================ */
-
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
-}
-
-
-/* ============================
-BODY
-============================ */
-
-body{
 font-family: Arial, Helvetica, sans-serif;
-background:#f4f6f9;
-color:#333;
 }
 
 
-/* ============================
-LOGIN / AUTH
-============================ */
+/* FUNDO COM LOGO */
 
-.auth-page{
+.login-page{
+
 height:100vh;
+
+background-image: url("../img/logo.png");
+
+background-repeat: no-repeat;
+
+background-position: center;
+
+background-size: 600px;
+
+background-color:#f4f6f9;
+
 display:flex;
+
 align-items:center;
+
 justify-content:center;
+
 }
 
-.auth-container{
 
-width:380px;
+/* camada escura para contraste */
+
+.login-overlay{
+
+width:100%;
+height:100%;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+background:rgba(255,255,255,0.6);
+
+}
+
+
+/* caixa de login */
+
+.login-box{
+
+width:350px;
+
 background:white;
 
-padding:40px;
+padding:35px;
 
-border-radius:12px;
+border-radius:10px;
 
-box-shadow:0 10px 25px rgba(0,0,0,0.08);
+box-shadow:0 10px 25px rgba(0,0,0,0.15);
 
 text-align:center;
 
 }
 
 
-/* ============================
-LOGO
-============================ */
+/* título */
 
-.logo{
-
-width:120px;
-
-margin-bottom:15px;
-
-}
-
-
-/* ============================
-TITLE
-============================ */
-
-h2{
+.login-box h2{
 
 margin-bottom:20px;
 
-font-weight:600;
-
 }
 
 
-/* ============================
-FORM
-============================ */
+/* inputs */
 
-form{
+.login-box input{
 
-display:flex;
-
-flex-direction:column;
-
-gap:10px;
-
-}
-
-
-/* ============================
-INPUTS
-============================ */
-
-input{
+width:100%;
 
 padding:12px;
 
+margin-bottom:10px;
+
 border-radius:6px;
 
-border:1px solid #d1d5db;
-
-font-size:14px;
-
-}
-
-input:focus{
-
-outline:none;
-
-border-color:#2563eb;
+border:1px solid #ccc;
 
 }
 
 
-/* ============================
-BUTTON
-============================ */
+/* botão */
 
-button{
+.login-box button{
+
+width:100%;
 
 padding:12px;
 
@@ -125,59 +106,28 @@ border:none;
 
 border-radius:6px;
 
-cursor:pointer;
-
-font-size:15px;
-
-}
-
-.primary{
-
 background:#2563eb;
 
 color:white;
 
+font-size:15px;
+
+cursor:pointer;
+
 }
 
-.primary:hover{
+.login-box button:hover{
 
 background:#1d4ed8;
 
 }
 
 
-/* ============================
-LINK
-============================ */
-
-.link{
-
-display:block;
-
-margin-top:15px;
-
-color:#2563eb;
-
-text-decoration:none;
-
-font-size:14px;
-
-}
-
-.link:hover{
-
-text-decoration:underline;
-
-}
-
-
-/* ============================
-FLASH MESSAGES
-============================ */
+/* mensagens */
 
 .flash{
 
-margin-top:15px;
+margin-top:10px;
 
 font-size:14px;
 
@@ -198,22 +148,5 @@ color:#dc2626;
 .flash .warning{
 
 color:#f59e0b;
-
-}
-
-
-/* ============================
-RESPONSIVE
-============================ */
-
-@media(max-width:480px){
-
-.auth-container{
-
-width:90%;
-
-padding:30px;
-
-}
 
 }
