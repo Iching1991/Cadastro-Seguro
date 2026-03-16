@@ -7,3 +7,5 @@ pillow
 pandas
 xlsxwriter
 cryptography
+flask_login
+openpyxl
