@@ -1,1 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
 
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Painel Administrativo</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f9;
+    margin:0;
+}
+
+header{
+    background:#111827;
+    color:white;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.container{
+    padding:30px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:30px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.08);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th, td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+    text-align:left;
+}
+
+th{
+    background:#f3f4f6;
+}
+
+button{
+    padding:6px 10px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+.approve{
+    background:#16a34a;
+    color:white;
+}
+
+.delete{
+    background:#dc2626;
+    color:white;
+}
+
+.export{
+    background:#2563eb;
+    color:white;
+    padding:10px 15px;
+    margin-top:10px;
+}
+
+.logout{
+    color:white;
+    text-decoration:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h2>Painel Administrativo</h2>
+
+<a class="logout" href="/logout">Sair</a>
+
+</header>
+
+
+<div class="container">
+
+
+<div class="card">
+
+<h3>Usuários cadastrados</h3>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Nome</th>
+<th>Email</th>
+<th>Aprovado</th>
+<th>Ação</th>
+</tr>
+
+{% for user in users %}
+
+<tr>
+
+<td>{{ user.id }}</td>
+<td>{{ user.nome }}</td>
+<td>{{ user.email }}</td>
+
+<td>
+{% if user.aprovado %}
+✔
+{% else %}
+❌
+{% endif %}
+</td>
+
+<td>
+
+{% if not user.aprovado %}
+
+<form method="POST" action="/admin/aprovar/{{ user.id }}">
+<button class="approve">Aprovar</button>
+</form>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>Clínicas cadastradas</h3>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Nome</th>
+<th>Email</th>
+<th>Telefone</th>
+<th>Endereço</th>
+<th>Dono</th>
+</tr>
+
+{% for clinic in clinics %}
+
+<tr>
+
+<td>{{ clinic.id }}</td>
+<td>{{ clinic.nome }}</td>
+<td>{{ clinic.email }}</td>
+<td>{{ clinic.telefone }}</td>
+<td>{{ clinic.endereco }}</td>
+<td>{{ clinic.owner.nome }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>Exportar Database</h3>
+
+<p>Baixar dados completos do sistema em Excel.</p>
+
+<a href="/admin/export">
+
+<button class="export">
+
+Exportar Excel
+
+</button>
+
+</a>
+
+</div>
+
+
+</div>
+
+</body>
+
+</html>
