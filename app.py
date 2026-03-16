@@ -3,16 +3,19 @@ from flask import (
     redirect, session, url_for,
     flash, send_from_directory
 )
+
 from flask_bcrypt import Bcrypt
 from functools import wraps
+from werkzeug.utils import secure_filename
+
 import os
 
 from config import Config
 from models import db, User, Clinic
-from werkzeug.utils import secure_filename
+
 
 # ─────────────────────────────────────────────
-# INICIALIZAÇÃO
+# APP
 # ─────────────────────────────────────────────
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -22,42 +25,72 @@ bcrypt = Bcrypt(app)
 
 
 # ─────────────────────────────────────────────
+# HELPERS
+# ─────────────────────────────────────────────
+def get_current_user():
+    return db.session.get(User, session.get("user_id"))
+
+
+def allowed_file(filename):
+    ext = filename.rsplit(".", 1)[1].lower()
+    return ext in app.config.get(
+        "ALLOWED_EXTENSIONS",
+        {"png", "jpg", "jpeg", "webp"}
+    )
+
+
+def save_logo(file):
+
+    if not file or not file.filename:
+        return None
+
+    if not allowed_file(file.filename):
+        return None
+
+    filename = secure_filename(file.filename)
+
+    folder = app.config.get("LOGO_FOLDER", "uploads/logos")
+
+    os.makedirs(folder, exist_ok=True)
+
+    path = os.path.join(folder, filename)
+
+    file.save(path)
+
+    return filename
+
+
+# ─────────────────────────────────────────────
 # DECORATORS
 # ─────────────────────────────────────────────
 def login_required(f):
+
     @wraps(f)
     def decorated(*args, **kwargs):
+
         if "user_id" not in session:
             flash("Faça login para continuar.", "warning")
             return redirect(url_for("login"))
+
         return f(*args, **kwargs)
+
     return decorated
 
 
 def admin_required(f):
+
     @wraps(f)
     def decorated(*args, **kwargs):
-        if "user_id" not in session:
-            flash("Faça login para continuar.", "warning")
-            return redirect(url_for("login"))
-        user = db.session.get(User, session["user_id"])
+
+        user = get_current_user()
+
         if not user or not user.is_admin:
             flash("Acesso restrito ao administrador.", "danger")
             return redirect(url_for("dashboard"))
+
         return f(*args, **kwargs)
+
     return decorated
-
-
-def allowed_file(filename: str) -> bool:
-    return (
-        "." in filename and
-        filename.rsplit(".", 1)[1].lower()
-        in app.config.get("ALLOWED_EXTENSIONS", {"png", "jpg", "jpeg", "webp"})
-    )
-
-
-def get_current_user():
-    return db.session.get(User, session.get("user_id"))
 
 
 # ─────────────────────────────────────────────
@@ -65,8 +98,10 @@ def get_current_user():
 # ─────────────────────────────────────────────
 @app.route("/")
 def home():
+
     if "user_id" in session:
         return redirect(url_for("dashboard"))
+
     return redirect(url_for("login"))
 
 
@@ -75,32 +110,39 @@ def home():
 # ─────────────────────────────────────────────
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     if "user_id" in session:
         return redirect(url_for("dashboard"))
 
     if request.method == "POST":
+
         email = request.form.get("email", "").strip().lower()
         senha = request.form.get("senha", "")
-
-        if not email or not senha:
-            flash("Preencha todos os campos.", "warning")
-            return redirect(url_for("login"))
 
         user = User.query.filter_by(email=email).first()
 
         if not user or not bcrypt.check_password_hash(user.senha, senha):
+
             flash("E-mail ou senha incorretos.", "danger")
             return redirect(url_for("login"))
 
         if not user.aprovado:
-            flash("Sua conta ainda não foi aprovada pelo administrador.", "warning")
+
+            flash(
+                "Sua conta ainda não foi aprovada pelo administrador.",
+                "warning"
+            )
+
             return redirect(url_for("login"))
 
-        session["user_id"]   = user.id
-        session["user_nome"] = user.nome
-        session["is_admin"]  = user.is_admin
+        session.update({
+            "user_id": user.id,
+            "user_nome": user.nome,
+            "is_admin": user.is_admin
+        })
 
         flash(f"Bem-vindo, {user.nome}!", "success")
+
         return redirect(url_for("dashboard"))
 
     return render_template("login.html")
@@ -112,8 +154,11 @@ def login():
 @app.route("/logout")
 @login_required
 def logout():
+
     session.clear()
-    flash("Sessão encerrada com sucesso.", "info")
+
+    flash("Sessão encerrada.", "info")
+
     return redirect(url_for("login"))
 
 
@@ -122,14 +167,14 @@ def logout():
 # ─────────────────────────────────────────────
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if "user_id" in session:
-        return redirect(url_for("dashboard"))
 
     if request.method == "POST":
-        nome  = request.form.get("nome", "").strip()
+
+        nome = request.form.get("nome", "").strip()
         email = request.form.get("email", "").strip().lower()
+
         senha = request.form.get("senha", "")
-        conf  = request.form.get("confirmar_senha", "")
+        conf = request.form.get("confirmar_senha", "")
 
         if not all([nome, email, senha, conf]):
             flash("Preencha todos os campos.", "warning")
@@ -147,20 +192,22 @@ def register():
             flash("E-mail já cadastrado.", "danger")
             return redirect(url_for("register"))
 
-        senha_hash = bcrypt.generate_password_hash(senha).decode("utf-8")
+        senha_hash = bcrypt.generate_password_hash(senha).decode()
 
         user = User(
             nome=nome,
             email=email,
-            senha=senha_hash,
-            aprovado=False,
-            is_admin=False
+            senha=senha_hash
         )
 
         db.session.add(user)
         db.session.commit()
 
-        flash("Cadastro realizado! Aguarde a aprovação do administrador.", "success")
+        flash(
+            "Cadastro realizado! Aguarde aprovação do administrador.",
+            "success"
+        )
+
         return redirect(url_for("login"))
 
     return render_template("register.html")
@@ -172,25 +219,23 @@ def register():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    user  = get_current_user()
-    total = Clinic.query.count()
 
-    if user.is_admin:
-        recentes = Clinic.query.order_by(Clinic.id.desc()).limit(5).all()
-    else:
-        recentes = (
-            Clinic.query
-            .filter_by(user_id=user.id)
-            .order_by(Clinic.id.desc())
-            .limit(5)
-            .all()
-        )
+    user = get_current_user()
+
+    query = Clinic.query
+
+    if not user.is_admin:
+        query = query.filter_by(user_id=user.id)
+
+    recentes = query.order_by(Clinic.id.desc()).limit(5).all()
+
+    total = query.count()
 
     return render_template(
         "dashboard.html",
         user=user,
-        total=total,
-        recentes=recentes
+        recentes=recentes,
+        total=total
     )
 
 
@@ -200,19 +245,21 @@ def dashboard():
 @app.route("/clinics")
 @login_required
 def clinics():
+
     user = get_current_user()
 
-    if user.is_admin:
-        data = Clinic.query.order_by(Clinic.nome).all()
-    else:
-        data = (
-            Clinic.query
-            .filter_by(user_id=user.id)
-            .order_by(Clinic.nome)
-            .all()
-        )
+    query = Clinic.query
 
-    return render_template("clinics.html", clinics=data, user=user)
+    if not user.is_admin:
+        query = query.filter_by(user_id=user.id)
+
+    data = query.order_by(Clinic.nome).all()
+
+    return render_template(
+        "clinics.html",
+        clinics=data,
+        user=user
+    )
 
 
 # ─────────────────────────────────────────────
@@ -221,38 +268,37 @@ def clinics():
 @app.route("/clinics/create", methods=["GET", "POST"])
 @login_required
 def create_clinic():
+
     if request.method == "POST":
-        nome     = request.form.get("nome", "").strip()
-        email    = request.form.get("email", "").strip().lower()
+
+        nome = request.form.get("nome", "").strip()
+        email = request.form.get("email", "").strip().lower()
+
         telefone = request.form.get("telefone", "").strip()
         endereco = request.form.get("endereco", "").strip()
 
         if not all([nome, email, telefone, endereco]):
-            flash("Preencha todos os campos obrigatórios.", "warning")
+
+            flash("Preencha todos os campos.", "warning")
+
             return redirect(url_for("create_clinic"))
 
-        filename = None
-        file = request.files.get("logo")
-
-        if file and file.filename and allowed_file(file.filename):
-            filename    = secure_filename(file.filename)
-            logo_folder = app.config.get("LOGO_FOLDER", "uploads/logos")
-            os.makedirs(logo_folder, exist_ok=True)
-            file.save(os.path.join(logo_folder, filename))
+        logo = save_logo(request.files.get("logo"))
 
         clinic = Clinic(
             nome=nome,
             email=email,
             telefone=telefone,
             endereco=endereco,
-            logo=filename,
+            logo=logo,
             user_id=session["user_id"]
         )
 
         db.session.add(clinic)
         db.session.commit()
 
-        flash(f"Parceiro '{nome}' cadastrado com sucesso!", "success")
+        flash("Parceiro cadastrado com sucesso!", "success")
+
         return redirect(url_for("clinics"))
 
     return render_template("create_clinic.html")
@@ -264,36 +310,53 @@ def create_clinic():
 @app.route("/clinics/edit/<int:id>", methods=["GET", "POST"])
 @login_required
 def edit_clinic(id):
+
     clinic = db.session.get(Clinic, id)
-    user   = get_current_user()
+
+    user = get_current_user()
 
     if not clinic:
         flash("Parceiro não encontrado.", "danger")
         return redirect(url_for("clinics"))
 
     if clinic.user_id != user.id and not user.is_admin:
-        flash("Sem permissão para editar este parceiro.", "danger")
+        flash("Sem permissão.", "danger")
         return redirect(url_for("clinics"))
 
     if request.method == "POST":
-        clinic.nome     = request.form.get("nome", clinic.nome).strip()
-        clinic.email    = request.form.get("email", clinic.email).strip().lower()
-        clinic.telefone = request.form.get("telefone", clinic.telefone).strip()
-        clinic.endereco = request.form.get("endereco", clinic.endereco).strip()
 
-        file = request.files.get("logo")
-        if file and file.filename and allowed_file(file.filename):
-            filename    = secure_filename(file.filename)
-            logo_folder = app.config.get("LOGO_FOLDER", "uploads/logos")
-            os.makedirs(logo_folder, exist_ok=True)
-            file.save(os.path.join(logo_folder, filename))
-            clinic.logo = filename
+        clinic.nome = request.form.get("nome", clinic.nome).strip()
+
+        clinic.email = request.form.get(
+            "email",
+            clinic.email
+        ).strip().lower()
+
+        clinic.telefone = request.form.get(
+            "telefone",
+            clinic.telefone
+        ).strip()
+
+        clinic.endereco = request.form.get(
+            "endereco",
+            clinic.endereco
+        ).strip()
+
+        logo = save_logo(request.files.get("logo"))
+
+        if logo:
+            clinic.logo = logo
 
         db.session.commit()
-        flash(f"Parceiro '{clinic.nome}' atualizado!", "success")
+
+        flash("Parceiro atualizado!", "success")
+
         return redirect(url_for("clinics"))
 
-    return render_template("edit_clinic.html", clinic=clinic)
+    return render_template(
+        "edit_clinic.html",
+        clinic=clinic
+    )
 
 
 # ─────────────────────────────────────────────
@@ -302,32 +365,43 @@ def edit_clinic(id):
 @app.route("/clinics/delete/<int:id>", methods=["POST"])
 @login_required
 def delete_clinic(id):
+
     clinic = db.session.get(Clinic, id)
-    user   = get_current_user()
+
+    user = get_current_user()
 
     if not clinic:
         flash("Parceiro não encontrado.", "danger")
         return redirect(url_for("clinics"))
 
     if clinic.user_id != user.id and not user.is_admin:
-        flash("Sem permissão para excluir este parceiro.", "danger")
+        flash("Sem permissão.", "danger")
         return redirect(url_for("clinics"))
 
     db.session.delete(clinic)
+
     db.session.commit()
 
-    flash("Parceiro removido com sucesso.", "success")
+    flash("Parceiro removido.", "success")
+
     return redirect(url_for("clinics"))
 
 
 # ─────────────────────────────────────────────
-# ADMIN — GERENCIAR USUÁRIOS
+# ADMIN
 # ─────────────────────────────────────────────
 @app.route("/admin/users")
 @admin_required
 def admin_users():
-    pendentes = User.query.filter_by(aprovado=False, is_admin=False).all()
-    todos     = User.query.filter_by(is_admin=False).order_by(User.nome).all()
+
+    pendentes = User.query.filter_by(
+        aprovado=False,
+        is_admin=False
+    ).all()
+
+    todos = User.query.filter_by(
+        is_admin=False
+    ).order_by(User.nome).all()
 
     return render_template(
         "admin_users.html",
@@ -339,32 +413,34 @@ def admin_users():
 @app.route("/admin/users/approve/<int:id>", methods=["POST"])
 @admin_required
 def approve_user(id):
+
     user = db.session.get(User, id)
 
-    if not user:
-        flash("Usuário não encontrado.", "danger")
-        return redirect(url_for("admin_users"))
+    if user:
 
-    user.aprovado = True
-    db.session.commit()
+        user.aprovado = True
 
-    flash(f"Usuário '{user.nome}' aprovado com sucesso!", "success")
+        db.session.commit()
+
+        flash("Usuário aprovado.", "success")
+
     return redirect(url_for("admin_users"))
 
 
 @app.route("/admin/users/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_user(id):
+
     user = db.session.get(User, id)
 
-    if not user:
-        flash("Usuário não encontrado.", "danger")
-        return redirect(url_for("admin_users"))
+    if user:
 
-    db.session.delete(user)
-    db.session.commit()
+        db.session.delete(user)
 
-    flash("Usuário removido.", "success")
+        db.session.commit()
+
+        flash("Usuário removido.", "success")
+
     return redirect(url_for("admin_users"))
 
 
@@ -373,6 +449,7 @@ def delete_user(id):
 # ─────────────────────────────────────────────
 @app.route("/uploads/logos/<filename>")
 def get_logo(filename):
+
     return send_from_directory(
         app.config.get("LOGO_FOLDER", "uploads/logos"),
         filename
@@ -383,6 +460,8 @@ def get_logo(filename):
 # START
 # ─────────────────────────────────────────────
 if __name__ == "__main__":
+
     with app.app_context():
         db.create_all()
+
     app.run(debug=True)
