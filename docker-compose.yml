@@ -1,11 +1,16 @@
-version: "3.9"
+FROM python:3.11-slim
 
-services:
-  vetclinic:
-    build: .
-    container_name: vetclinic_app
-    ports:
-      - "5000:5000"
-    volumes:
-      - .:/app
-    restart: always
+# Pasta de trabalho dentro do container
+WORKDIR /app
+
+# Copia tudo do repositório para dentro do container
+COPY . .
+
+# Instala as dependências
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Porta interna que o gunicorn vai usar
+EXPOSE 8000
+
+# Comando para iniciar a app em produção
+CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8000"]
