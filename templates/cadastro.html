@@ -1,1 +1,24 @@
+@app.route("/cadastro", methods=["GET","POST"])
+def cadastro():
 
+    if request.method == "POST":
+
+        nome = request.form["nome"]
+        email = request.form["email"]
+        senha = generate_password_hash(request.form["senha"])
+
+        user = User(
+            nome=nome,
+            email=email,
+            senha=senha
+        )
+
+        db.session.add(user)
+        db.session.commit()
+
+        return render_template(
+            "cadastro.html",
+            mensagem="Cadastro enviado. Aguarde aprovação do administrador."
+        )
+
+    return render_template("cadastro.html")
