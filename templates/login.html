@@ -4,99 +4,49 @@
 <head>
 
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Login - Cadastro Seguro</title>
+<title>Login</title>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-<style>
-
-body{
-    font-family: Arial, sans-serif;
-    background:#f4f6f9;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-
-.login-container{
-    background:white;
-    padding:40px;
-    border-radius:10px;
-    box-shadow:0 5px 20px rgba(0,0,0,0.1);
-    width:350px;
-}
-
-h2{
-    text-align:center;
-    margin-bottom:20px;
-}
-
-input{
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-    border-radius:6px;
-    border:1px solid #ccc;
-}
-
-button{
-    width:100%;
-    padding:10px;
-    margin-top:20px;
-    background:#2c7be5;
-    border:none;
-    color:white;
-    border-radius:6px;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#1a5dcc;
-}
-
-.link{
-    text-align:center;
-    margin-top:15px;
-}
-
-.error{
-    color:red;
-    text-align:center;
-    margin-top:10px;
-}
-
-</style>
 
 </head>
 
 
-<body>
+<body class="auth-page">
 
-<div class="login-container">
+
+<div class="auth-container">
+
+
+<img
+src="{{ url_for('static', filename='img/logo.png') }}"
+class="logo"
+alt="Logo"
+>
+
 
 <h2>Login</h2>
 
-<form method="POST" action="/login">
 
-<input 
-type="email" 
-name="email" 
+<form method="POST" action="{{ url_for('login') }}">
+
+<input
+type="email"
+name="email"
 placeholder="Email"
 required
 >
 
-<input 
+<input
 type="password"
 name="senha"
 placeholder="Senha"
 required
 >
 
-<button type="submit">
+
+<button type="submit" class="primary">
 
 Entrar
 
@@ -105,26 +55,30 @@ Entrar
 </form>
 
 
-{% if error %}
-
-<p class="error">
-
-{{ error }}
-
-</p>
-
-{% endif %}
-
-
-<div class="link">
-
-<a href="/cadastro">
+<a href="{{ url_for('register') }}" class="link">
 
 Criar conta
 
 </a>
 
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+
+{% if messages %}
+
+<div class="flash">
+
+{% for category, message in messages %}
+
+<p class="{{ category }}">{{ message }}</p>
+
+{% endfor %}
+
 </div>
+
+{% endif %}
+
+{% endwith %}
 
 
 </div>
