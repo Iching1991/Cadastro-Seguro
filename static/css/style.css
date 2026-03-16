@@ -1,1 +1,233 @@
+/* ===============================
+   RESET
+================================ */
 
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    background:#f4f6f9;
+    color:#333;
+}
+
+
+/* ===============================
+   HEADER
+================================ */
+
+header{
+    background:#111827;
+    color:white;
+    padding:15px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+header h2{
+    font-size:20px;
+}
+
+header a{
+    color:white;
+    text-decoration:none;
+    font-size:14px;
+}
+
+
+/* ===============================
+   CONTAINER
+================================ */
+
+.container{
+    padding:30px;
+}
+
+
+/* ===============================
+   CARDS
+================================ */
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:25px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+.card h3{
+    margin-bottom:15px;
+}
+
+
+/* ===============================
+   FORMULÁRIOS
+================================ */
+
+form{
+    display:flex;
+    flex-direction:column;
+}
+
+input{
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+    margin-bottom:10px;
+    font-size:14px;
+}
+
+input:focus{
+    outline:none;
+    border-color:#2c7be5;
+}
+
+
+/* ===============================
+   BOTÕES
+================================ */
+
+button{
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:14px;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+.approve{
+    background:#16a34a;
+    color:white;
+}
+
+.delete{
+    background:#dc2626;
+    color:white;
+}
+
+.export{
+    background:#2563eb;
+    color:white;
+}
+
+.primary{
+    background:#2c7be5;
+    color:white;
+}
+
+
+/* ===============================
+   TABELAS
+================================ */
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+th{
+    background:#f3f4f6;
+    text-align:left;
+    padding:10px;
+    font-size:14px;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+    font-size:14px;
+}
+
+tr:hover{
+    background:#f9fafb;
+}
+
+
+/* ===============================
+   LOGIN / CADASTRO
+================================ */
+
+.login-container,
+.container-auth{
+    background:white;
+    padding:40px;
+    border-radius:10px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+    width:360px;
+    margin:auto;
+}
+
+.auth-page{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+
+/* ===============================
+   LINKS
+================================ */
+
+a{
+    color:#2563eb;
+    text-decoration:none;
+}
+
+a:hover{
+    text-decoration:underline;
+}
+
+
+/* ===============================
+   ALERTAS
+================================ */
+
+.msg{
+    margin-top:10px;
+    text-align:center;
+    color:#16a34a;
+}
+
+.error{
+    margin-top:10px;
+    text-align:center;
+    color:#dc2626;
+}
+
+
+/* ===============================
+   RESPONSIVO
+================================ */
+
+@media(max-width:768px){
+
+.container{
+    padding:15px;
+}
+
+table{
+    font-size:13px;
+}
+
+header{
+    flex-direction:column;
+    gap:10px;
+}
+
+}
