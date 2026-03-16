@@ -1,1 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
 
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Painel do Usuário</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f9;
+    margin:0;
+}
+
+header{
+    background:#2c7be5;
+    color:white;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.container{
+    padding:30px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:25px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.08);
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+button{
+    margin-top:15px;
+    padding:10px 15px;
+    border:none;
+    background:#2c7be5;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1a5dcc;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th, td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+    text-align:left;
+}
+
+th{
+    background:#f0f2f5;
+}
+
+.logout{
+    color:white;
+    text-decoration:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h2>Painel de Clínicas</h2>
+
+<a class="logout" href="/logout">Sair</a>
+
+</header>
+
+
+<div class="container">
+
+
+<div class="card">
+
+<h3>Cadastrar nova clínica</h3>
+
+<form method="POST" action="/clinic/add">
+
+<input type="text" name="nome" placeholder="Nome da clínica" required>
+
+<input type="email" name="email" placeholder="Email da clínica" required>
+
+<input type="text" name="telefone" placeholder="Telefone" required>
+
+<input type="text" name="endereco" placeholder="Endereço" required>
+
+<button type="submit">
+
+Cadastrar
+
+</button>
+
+</form>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>Minhas clínicas cadastradas</h3>
+
+<table>
+
+<tr>
+
+<th>Nome</th>
+<th>Email</th>
+<th>Telefone</th>
+<th>Endereço</th>
+
+</tr>
+
+{% for clinic in clinics %}
+
+<tr>
+
+<td>{{ clinic.nome }}</td>
+<td>{{ clinic.email }}</td>
+<td>{{ clinic.telefone }}</td>
+<td>{{ clinic.endereco }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+
+</div>
+
+</body>
+
+</html>
