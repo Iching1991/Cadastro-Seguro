@@ -4,6 +4,10 @@ from datetime import datetime
 db = SQLAlchemy()
 
 
+# =====================================================
+# USER
+# =====================================================
+
 class User(db.Model):
     __tablename__ = "users"
 
@@ -26,16 +30,12 @@ class User(db.Model):
         nullable=False
     )
 
-    is_admin = db.Column(
-        db.Boolean,
-        default=False,
-        nullable=False
-    )
-
-    aprovado = db.Column(
-        db.Boolean,
-        default=False,
-        nullable=False
+    # 🔥 NOVO SISTEMA DE ROLES
+    role = db.Column(
+        db.String(20),
+        default="user",   # user | owner | dev
+        nullable=False,
+        index=True
     )
 
     criado_em = db.Column(
@@ -44,6 +44,7 @@ class User(db.Model):
         nullable=False
     )
 
+    # RELAÇÃO COM CLINICS
     clinics = db.relationship(
         "Clinic",
         backref="owner",
@@ -51,9 +52,29 @@ class User(db.Model):
         cascade="all, delete-orphan"
     )
 
-    def __repr__(self):
-        return f"<User id={self.id} email={self.email}>"
+    # =====================================================
+    # PERMISSÕES
+    # =====================================================
 
+    def is_owner(self):
+        return self.role == "owner"
+
+    def is_dev(self):
+        return self.role == "dev"
+
+    def is_user(self):
+        return self.role == "user"
+
+    # =====================================================
+
+    def __repr__(self):
+        return f"<User id={self.id} email={self.email} role={self.role}>"
+
+
+
+# =====================================================
+# CLINIC
+# =====================================================
 
 class Clinic(db.Model):
     __tablename__ = "clinics"
