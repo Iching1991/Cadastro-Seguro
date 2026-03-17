@@ -5,150 +5,100 @@ box-sizing:border-box;
 font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 }
 
-/* ===============================
+
+/* ============================
 BODY
-=============================== */
+============================ */
 
 .login-page{
 
 height:100vh;
 
 display:flex;
+
 align-items:center;
+
 justify-content:center;
 
 background:#eef2f7;
 
-overflow:hidden;
-
-position:relative;
-
 }
 
 
-/* ===============================
-LOGO AO FUNDO
-=============================== */
+/* ============================
+CONTAINER
+============================ */
 
-.background{
-
-position:absolute;
-
-top:50%;
-left:50%;
-
-width:800px;
-height:400px;
-
-background-image:url("/static/img/logo.png");
-
-background-repeat:no-repeat;
-
-background-position:center;
-
-background-size:contain;
-
-transform:translate(-50%,-50%);
-
-opacity:0.45;
-
-z-index:0;
-
-}
-
-
-/* ===============================
-OVERLAY SUAVE
-=============================== */
-
-.login-page::before{
-
-content:"";
-
-position:absolute;
-
-top:0;
-left:0;
-
-width:100%;
-height:100%;
-
-background:rgba(255,255,255,0.55);
-
-backdrop-filter:blur(2px);
-
-z-index:1;
-
-}
-
-
-/* ===============================
-LOGIN WRAPPER
-=============================== */
-
-.login-wrapper{
-
-position:relative;
-
-z-index:2;
+.login-container{
 
 display:flex;
-align-items:center;
-justify-content:center;
 
-width:100%;
+flex-direction:column;
+
+align-items:center;
+
+gap:25px;
 
 }
 
 
-/* ===============================
-LOGIN CARD (GLASS)
-=============================== */
+/* ============================
+LOGO
+============================ */
+
+.logo{
+
+width:220px;
+
+object-fit:contain;
+
+}
+
+
+/* ============================
+LOGIN CARD
+============================ */
 
 .login-card{
 
 width:360px;
 
-padding:40px;
+padding:35px;
 
-border-radius:18px;
+border-radius:12px;
 
-background:rgba(255,255,255,0.65);
+background:white;
 
-backdrop-filter:blur(20px);
-
-border:1px solid rgba(255,255,255,0.8);
-
-box-shadow:0 30px 60px rgba(0,0,0,0.15);
+box-shadow:0 15px 30px rgba(0,0,0,0.1);
 
 text-align:center;
 
 }
 
 
-/* ===============================
+/* ============================
 TITLE
-=============================== */
+============================ */
 
 .login-card h2{
 
-margin-bottom:25px;
+margin-bottom:20px;
 
 color:#1f2937;
-
-font-weight:600;
 
 }
 
 
-/* ===============================
+/* ============================
 FORM
-=============================== */
+============================ */
 
 form{
 
 display:flex;
+
 flex-direction:column;
+
 gap:12px;
 
 }
@@ -160,13 +110,11 @@ input{
 
 padding:12px;
 
-border-radius:8px;
+border-radius:6px;
 
 border:1px solid #d1d5db;
 
 font-size:14px;
-
-background:white;
 
 }
 
@@ -179,7 +127,7 @@ padding:12px;
 
 border:none;
 
-border-radius:8px;
+border-radius:6px;
 
 background:#2563eb;
 
@@ -196,6 +144,36 @@ transition:.2s;
 button:hover{
 
 background:#1d4ed8;
-transform:translateY(-1px);
+
+}
+
+
+/* ============================
+FLASH
+============================ */
+
+.flash{
+
+margin-top:10px;
+
+font-size:14px;
+
+}
+
+.flash .success{
+
+color:#16a34a;
+
+}
+
+.flash .danger{
+
+color:#dc2626;
+
+}
+
+.flash .warning{
+
+color:#f59e0b;
 
 }
