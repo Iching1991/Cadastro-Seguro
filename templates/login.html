@@ -2,27 +2,24 @@
 <html lang="pt-BR">
 
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Login</title>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
 </head>
+
 
 <body class="login-page">
 
-
-<div class="login-container">
-
+<!-- LOGO GRANDE DE FUNDO -->
 <img 
 src="{{ url_for('static', filename='img/logo.png') }}" 
-class="logo"
+class="logo-bg"
 alt="Logo"
 >
 
+<!-- CAIXA DE LOGIN -->
 <div class="login-card">
 
 <h2>Login</h2>
@@ -37,6 +34,7 @@ alt="Logo"
 
 </form>
 
+<!-- MENSAGENS -->
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
 <div class="flash">
@@ -49,8 +47,6 @@ alt="Logo"
 
 </div>
 
-</div>
-
-
 </body>
+
 </html>
