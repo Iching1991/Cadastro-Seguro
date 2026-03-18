@@ -39,6 +39,7 @@ def login_required(f):
 # =====================================================
 
 @app.route("/", methods=["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
 
     if request.method == "POST":
@@ -50,12 +51,12 @@ def login():
 
         if not user or not bcrypt.check_password_hash(user.senha, senha):
             flash("Login inválido", "danger")
-            return redirect("/")
+            return redirect(url_for("login"))
 
         session["user_id"] = user.id
         session["role"] = user.role
 
-        return redirect("/dashboard")
+        return redirect(url_for("dashboard"))
 
     return render_template("login.html")
 
@@ -67,7 +68,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect("/")
+    return redirect(url_for("login"))
 
 
 # =====================================================
@@ -96,7 +97,7 @@ def clinics():
     # DEV NÃO PODE VER DADOS
     if user.is_dev():
         flash("Acesso restrito aos dados.", "danger")
-        return redirect("/dashboard")
+        return redirect(url_for("dashboard"))
 
     # OWNER vê tudo
     if user.is_owner():
@@ -128,11 +129,11 @@ def create_clinic():
     db.session.add(clinic)
     db.session.commit()
 
-    return redirect("/clinics")
+    return redirect(url_for("clinics"))
 
 
 # =====================================================
-# SEED USERS (IMPORTANTÍSSIMO)
+# SEED USERS
 # =====================================================
 
 def seed_users():
@@ -161,17 +162,12 @@ def seed_users():
 
 
 # =====================================================
-# START
+# 🔥 INIT AUTOMÁTICO (ESSENCIAL PARA RAILWAY)
 # =====================================================
 
-if __name__ == "__main__":
+with app.app_context():
+    db.create_all()
+    seed_users()
 
-    with app.app_context():
-        db.create_all()
-        seed_users()
-
-        # cria pasta de uploads
-        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-        os.makedirs(app.config["LOGO_FOLDER"], exist_ok=True)
-
-    app.run(debug=True)
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+    os.makedirs(app.config["LOGO_FOLDER"], exist_ok=True)
