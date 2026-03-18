@@ -22,15 +22,31 @@ bcrypt = Bcrypt(app)
 # =====================================================
 
 def get_current_user():
-    return db.session.get(User, session.get("user_id"))
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return None
+
+    return db.session.get(User, user_id)
 
 
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if "user_id" not in session:
+
+        user_id = session.get("user_id")
+
+        if not user_id:
             return redirect(url_for("login"))
+
+        user = db.session.get(User, user_id)
+
+        if not user:
+            session.clear()
+            return redirect(url_for("login"))
+
         return f(*args, **kwargs)
+
     return decorated
 
 
@@ -47,10 +63,22 @@ def login():
         email = request.form.get("email")
         senha = request.form.get("senha")
 
+        if not email or not senha:
+            flash("Preencha todos os campos", "warning")
+            return redirect(url_for("login"))
+
         user = User.query.filter_by(email=email).first()
 
-        if not user or not bcrypt.check_password_hash(user.senha, senha):
-            flash("Login inválido", "danger")
+        if not user:
+            flash("Usuário não encontrado", "danger")
+            return redirect(url_for("login"))
+
+        try:
+            if not bcrypt.check_password_hash(user.senha, senha):
+                flash("Senha incorreta", "danger")
+                return redirect(url_for("login"))
+        except:
+            flash("Erro de autenticação", "danger")
             return redirect(url_for("login"))
 
         session["user_id"] = user.id
@@ -72,7 +100,7 @@ def logout():
 
 
 # =====================================================
-# DASHBOARD (CENTRO DO SISTEMA)
+# DASHBOARD
 # =====================================================
 
 @app.route("/dashboard")
@@ -81,7 +109,10 @@ def dashboard():
 
     user = get_current_user()
 
-    # DEV não pode ver dados
+    if not user:
+        return redirect(url_for("login"))
+
+    # DEV não vê dados
     if user.is_dev():
         clinics = []
 
@@ -115,9 +146,8 @@ def create_clinic():
 
     user = get_current_user()
 
-    # DEV não pode cadastrar
-    if user.is_dev():
-        flash("Você não tem permissão para cadastrar.", "danger")
+    if not user or user.is_dev():
+        flash("Sem permissão para cadastrar.", "danger")
         return redirect(url_for("dashboard"))
 
     nome = request.form.get("nome")
@@ -146,7 +176,7 @@ def create_clinic():
 
 
 # =====================================================
-# DELETE CLINIC (BONUS PROFISSIONAL)
+# DELETE CLINIC
 # =====================================================
 
 @app.route("/clinics/delete/<int:id>", methods=["POST"])
@@ -160,7 +190,6 @@ def delete_clinic(id):
         flash("Clínica não encontrada.", "danger")
         return redirect(url_for("dashboard"))
 
-    # Permissão: owner ou dono da clínica
     if not (user.is_owner() or clinic.user_id == user.id):
         flash("Sem permissão.", "danger")
         return redirect(url_for("dashboard"))
@@ -174,7 +203,7 @@ def delete_clinic(id):
 
 
 # =====================================================
-# SEED USERS
+# SEED USERS (FORÇADO E SEGURO)
 # =====================================================
 
 def seed_users():
@@ -186,18 +215,20 @@ def seed_users():
 
     for nome, email, senha, role in users:
 
-        if not User.query.filter_by(email=email).first():
+        senha_hash = bcrypt.generate_password_hash(senha).decode()
 
-            senha_hash = bcrypt.generate_password_hash(senha).decode()
+        user = User.query.filter_by(email=email).first()
 
-            user = User(
+        if user:
+            user.senha = senha_hash
+            user.role = role
+        else:
+            db.session.add(User(
                 nome=nome,
                 email=email,
                 senha=senha_hash,
                 role=role
-            )
-
-            db.session.add(user)
+            ))
 
     db.session.commit()
 
