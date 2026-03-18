@@ -1,97 +1,83 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
 
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Dashboard</title>
 
-<style>
-body{
-    font-family: Arial;
-    background:#f4f6f9;
-    margin:0;
-}
-
-header{
-    background:#2563eb;
-    color:white;
-    padding:15px;
-    display:flex;
-    justify-content:space-between;
-}
-
-.container{
-    padding:30px;
-}
-
-.card{
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:20px;
-}
-
-input{
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-}
-
-button{
-    margin-top:10px;
-    padding:10px;
-    background:#2563eb;
-    color:white;
-    border:none;
-    cursor:pointer;
-}
-
-table{
-    width:100%;
-    margin-top:20px;
-    border-collapse:collapse;
-}
-
-th, td{
-    padding:10px;
-    border-bottom:1px solid #ddd;
-}
-</style>
-
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
 
-<header>
+<!-- HEADER -->
+<header class="topbar">
+
     <h2>Bem-vindo, {{ user.nome }}</h2>
-    <a href="/logout" style="color:white;">Sair</a>
+
+    <a href="{{ url_for('logout') }}" class="logout-btn">
+        Sair
+    </a>
+
 </header>
+
 
 <div class="container">
 
-    {% if not user.is_dev() %}
-
+    <!-- =========================
+    ALTERAR SENHA
+    ========================= -->
     <div class="card">
-        <h3>Nova Clínica</h3>
 
-        <form method="POST" action="/clinics/create">
-            <input name="nome" placeholder="Nome" required>
-            <input name="email" placeholder="Email" required>
-            <input name="telefone" placeholder="Telefone" required>
-            <input name="endereco" placeholder="Endereço" required>
-            <button type="submit">Cadastrar</button>
+        <h3>Alterar senha</h3>
+
+        <form method="POST" action="{{ url_for('change_password') }}">
+
+            <input type="password" name="senha_atual" placeholder="Senha atual" required>
+            <input type="password" name="nova_senha" placeholder="Nova senha" required>
+
+            <button type="submit">Alterar senha</button>
+
         </form>
+
     </div>
 
+
+    <!-- =========================
+    CADASTRAR CLÍNICA
+    ========================= -->
+    {% if not user.is_dev() %}
+    <div class="card">
+
+        <h3>Cadastrar nova clínica</h3>
+
+        <form method="POST" action="{{ url_for('create_clinic') }}">
+
+            <input type="text" name="nome" placeholder="Nome da clínica" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="text" name="telefone" placeholder="Telefone" required>
+            <input type="text" name="endereco" placeholder="Endereço" required>
+
+            <button type="submit">Cadastrar</button>
+
+        </form>
+
+    </div>
     {% endif %}
 
-    <div class="card">
-        <h3>Clínicas</h3>
 
-        {% if clinics %}
+    <!-- =========================
+    LISTA DE CLÍNICAS
+    ========================= -->
+    {% if not user.is_dev() %}
+    <div class="card">
+
+        <h3>Clínicas cadastradas</h3>
+
         <table>
+
             <tr>
                 <th>Nome</th>
                 <th>Email</th>
@@ -99,21 +85,62 @@ th, td{
                 <th>Endereço</th>
             </tr>
 
-            {% for c in clinics %}
+            {% for clinic in clinics %}
             <tr>
-                <td>{{ c.nome }}</td>
-                <td>{{ c.email }}</td>
-                <td>{{ c.telefone }}</td>
-                <td>{{ c.endereco }}</td>
+                <td>{{ clinic.nome }}</td>
+                <td>{{ clinic.email }}</td>
+                <td>{{ clinic.telefone }}</td>
+                <td>{{ clinic.endereco }}</td>
             </tr>
             {% endfor %}
 
         </table>
-        {% else %}
-            <p>Nenhuma clínica cadastrada.</p>
-        {% endif %}
 
     </div>
+    {% endif %}
+
+
+    <!-- =========================
+    ADMIN - CRIAR USUÁRIO
+    ========================= -->
+    {% if user.is_owner() %}
+    <div class="card">
+
+        <h3>Criar novo usuário</h3>
+
+        <form method="POST" action="{{ url_for('create_user') }}">
+
+            <input type="text" name="nome" placeholder="Nome do usuário" required>
+            <input type="password" name="senha" placeholder="Senha" required>
+
+            <select name="role">
+                <option value="user">Usuário</option>
+                <option value="dev">Dev</option>
+                <option value="owner">Admin</option>
+            </select>
+
+            <button type="submit">Criar usuário</button>
+
+        </form>
+
+    </div>
+    {% endif %}
+
+
+    <!-- =========================
+    MENSAGENS
+    ========================= -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="card flash">
+
+        {% for category, message in messages %}
+            <p class="{{ category }}">{{ message }}</p>
+        {% endfor %}
+
+    </div>
+    {% endif %}
+    {% endwith %}
 
 </div>
 
