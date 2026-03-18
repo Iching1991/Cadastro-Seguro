@@ -12,38 +12,50 @@
 
 <body class="login-page">
 
-<!-- LOGO DE FUNDO -->
-<img 
-src="{{ url_for('static', filename='img/logo.png') }}" 
-class="logo-bg"
-alt="Logo"
->
+<div class="login-container">
 
-<!-- LOGIN -->
-<div class="login-card">
+    <!-- LOGO GRANDE -->
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo">
 
-<h2>Login</h2>
+    <!-- CARD LOGIN -->
+    <div class="login-card">
 
-<form method="POST" action="{{ url_for('login') }}">
+        <h2>Acesso ao Sistema</h2>
 
-<input type="email" name="email" placeholder="Email" required>
+        <form method="POST">
 
-<input type="password" name="senha" placeholder="Senha" required>
+            <input
+                type="text"
+                name="nome"
+                placeholder="Usuário"
+                required
+            >
 
-<button type="submit">Entrar</button>
+            <input
+                type="password"
+                name="senha"
+                placeholder="Senha"
+                required
+            >
 
-</form>
+            <button type="submit">
+                Entrar
+            </button>
 
-<!-- MENSAGENS -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-<div class="flash">
-{% for category, message in messages %}
-<p class="{{ category }}">{{ message }}</p>
-{% endfor %}
-</div>
-{% endif %}
-{% endwith %}
+        </form>
+
+        <!-- MENSAGENS -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash">
+            {% for category, message in messages %}
+                <p class="{{ category }}">{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+    </div>
 
 </div>
 
