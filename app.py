@@ -18,35 +18,63 @@ bcrypt = Bcrypt(app)
 
 
 # =====================================================
+# INIT BANCO (SEGURO PARA PRODUÇÃO)
+# =====================================================
+
+def init_db():
+    db.create_all()
+
+    users = [
+        ("Mhayara Reushing", "123456", "owner"),
+        ("Agnaldo Angelico", "123456", "user"),
+        ("Gabriela Saidel", "123456", "user"),
+        ("Flávia Prado", "123456", "user"),
+        ("Kerine Onuki", "123456", "user"),
+        ("Agnaldo Baldissera", "123456", "dev"),
+    ]
+
+    for nome, senha, role in users:
+
+        user = User.query.filter_by(nome=nome).first()
+
+        if not user:
+            senha_hash = bcrypt.generate_password_hash(senha).decode()
+
+            db.session.add(User(
+                nome=nome,
+                senha=senha_hash,
+                role=role
+            ))
+
+    db.session.commit()
+
+
+# =====================================================
 # HELPERS
 # =====================================================
 
 def get_current_user():
-    user_id = session.get("user_id")
-
-    if not user_id:
-        return None
-
-    return db.session.get(User, user_id)
+    return db.session.get(User, session.get("user_id"))
 
 
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-
-        user_id = session.get("user_id")
-
-        if not user_id:
-            return redirect(url_for("login"))
-
-        user = db.session.get(User, user_id)
-
-        if not user:
+        if not get_current_user():
             session.clear()
             return redirect(url_for("login"))
-
         return f(*args, **kwargs)
+    return decorated
 
+
+def owner_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user = get_current_user()
+        if not user or not user.is_owner():
+            flash("Acesso restrito", "danger")
+            return redirect(url_for("dashboard"))
+        return f(*args, **kwargs)
     return decorated
 
 
@@ -60,29 +88,20 @@ def login():
 
     if request.method == "POST":
 
-        email = request.form.get("email")
+        nome = request.form.get("nome")
         senha = request.form.get("senha")
 
-        if not email or not senha:
-            flash("Preencha todos os campos", "warning")
-            return redirect(url_for("login"))
-
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(nome=nome).first()
 
         if not user:
             flash("Usuário não encontrado", "danger")
             return redirect(url_for("login"))
 
-        try:
-            if not bcrypt.check_password_hash(user.senha, senha):
-                flash("Senha incorreta", "danger")
-                return redirect(url_for("login"))
-        except:
-            flash("Erro de autenticação", "danger")
+        if not bcrypt.check_password_hash(user.senha, senha):
+            flash("Senha incorreta", "danger")
             return redirect(url_for("login"))
 
         session["user_id"] = user.id
-        session["role"] = user.role
 
         return redirect(url_for("dashboard"))
 
@@ -109,35 +128,82 @@ def dashboard():
 
     user = get_current_user()
 
-    if not user:
-        return redirect(url_for("login"))
-
-    # DEV não vê dados
+    # DEV NÃO VÊ DADOS
     if user.is_dev():
         clinics = []
-
-    # OWNER vê tudo
     elif user.is_owner():
-        clinics = Clinic.query.order_by(Clinic.id.desc()).all()
-
-    # USER vê apenas os seus
+        clinics = Clinic.query.all()
     else:
-        clinics = (
-            Clinic.query
-            .filter_by(user_id=user.id)
-            .order_by(Clinic.id.desc())
-            .all()
-        )
+        clinics = Clinic.query.filter_by(user_id=user.id).all()
+
+    users = User.query.all() if user.is_owner() else []
 
     return render_template(
         "dashboard.html",
         user=user,
-        clinics=clinics
+        clinics=clinics,
+        users=users
     )
 
 
 # =====================================================
-# CREATE CLINIC
+# CRIAR USUÁRIO (ADMIN)
+# =====================================================
+
+@app.route("/users/create", methods=["POST"])
+@login_required
+@owner_required
+def create_user():
+
+    nome = request.form.get("nome")
+    senha = request.form.get("senha")
+    role = request.form.get("role")
+
+    if User.query.filter_by(nome=nome).first():
+        flash("Usuário já existe", "danger")
+        return redirect(url_for("dashboard"))
+
+    senha_hash = bcrypt.generate_password_hash(senha).decode()
+
+    db.session.add(User(
+        nome=nome,
+        senha=senha_hash,
+        role=role
+    ))
+
+    db.session.commit()
+
+    flash("Usuário criado com sucesso", "success")
+    return redirect(url_for("dashboard"))
+
+
+# =====================================================
+# ALTERAR SENHA
+# =====================================================
+
+@app.route("/change-password", methods=["POST"])
+@login_required
+def change_password():
+
+    user = get_current_user()
+
+    atual = request.form.get("senha_atual")
+    nova = request.form.get("nova_senha")
+
+    if not bcrypt.check_password_hash(user.senha, atual):
+        flash("Senha atual incorreta", "danger")
+        return redirect(url_for("dashboard"))
+
+    user.senha = bcrypt.generate_password_hash(nova).decode()
+
+    db.session.commit()
+
+    flash("Senha alterada com sucesso", "success")
+    return redirect(url_for("dashboard"))
+
+
+# =====================================================
+# CRIAR CLÍNICA
 # =====================================================
 
 @app.route("/clinics/create", methods=["POST"])
@@ -146,100 +212,33 @@ def create_clinic():
 
     user = get_current_user()
 
-    if not user or user.is_dev():
-        flash("Sem permissão para cadastrar.", "danger")
-        return redirect(url_for("dashboard"))
-
-    nome = request.form.get("nome")
-    email = request.form.get("email")
-    telefone = request.form.get("telefone")
-    endereco = request.form.get("endereco")
-
-    if not all([nome, email, telefone, endereco]):
-        flash("Preencha todos os campos.", "warning")
+    if user.is_dev():
+        flash("Sem permissão", "danger")
         return redirect(url_for("dashboard"))
 
     clinic = Clinic(
-        nome=nome,
-        email=email,
-        telefone=telefone,
-        endereco=endereco,
+        nome=request.form.get("nome"),
+        email=request.form.get("email"),
+        telefone=request.form.get("telefone"),
+        endereco=request.form.get("endereco"),
         user_id=user.id
     )
 
     db.session.add(clinic)
     db.session.commit()
 
-    flash("Clínica cadastrada com sucesso!", "success")
+    flash("Clínica cadastrada", "success")
 
     return redirect(url_for("dashboard"))
 
 
 # =====================================================
-# DELETE CLINIC
-# =====================================================
-
-@app.route("/clinics/delete/<int:id>", methods=["POST"])
-@login_required
-def delete_clinic(id):
-
-    user = get_current_user()
-    clinic = db.session.get(Clinic, id)
-
-    if not clinic:
-        flash("Clínica não encontrada.", "danger")
-        return redirect(url_for("dashboard"))
-
-    if not (user.is_owner() or clinic.user_id == user.id):
-        flash("Sem permissão.", "danger")
-        return redirect(url_for("dashboard"))
-
-    db.session.delete(clinic)
-    db.session.commit()
-
-    flash("Clínica removida.", "success")
-
-    return redirect(url_for("dashboard"))
-
-
-# =====================================================
-# SEED USERS (FORÇADO E SEGURO)
-# =====================================================
-
-def seed_users():
-
-    users = [
-        ("Proprietário", "admin@admin.com", "123456", "owner"),
-        ("Dev", "dev@dev.com", "123456", "dev"),
-    ]
-
-    for nome, email, senha, role in users:
-
-        senha_hash = bcrypt.generate_password_hash(senha).decode()
-
-        user = User.query.filter_by(email=email).first()
-
-        if user:
-            user.senha = senha_hash
-            user.role = role
-        else:
-            db.session.add(User(
-                nome=nome,
-                email=email,
-                senha=senha_hash,
-                role=role
-            ))
-
-    db.session.commit()
-
-
-# =====================================================
-# INIT AUTOMÁTICO (RAILWAY)
+# START (RAILWAY SAFE)
 # =====================================================
 
 with app.app_context():
-    db.create_all()
-    seed_users()
+    init_db()
 
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-    os.makedirs(app.config["LOGO_FOLDER"], exist_ok=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host="0.0.0.0", port=port)
