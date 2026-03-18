@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f4f6f9;
+    margin:0;
+}
+
+header{
+    background:#2563eb;
+    color:white;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+}
+
+.container{
+    padding:30px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+}
+
+button{
+    margin-top:10px;
+    padding:10px;
+    background:#2563eb;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+
+table{
+    width:100%;
+    margin-top:20px;
+    border-collapse:collapse;
+}
+
+th, td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+    <h2>Bem-vindo, {{ user.nome }}</h2>
+    <a href="/logout" style="color:white;">Sair</a>
+</header>
+
+<div class="container">
+
+    {% if not user.is_dev() %}
+
+    <div class="card">
+        <h3>Nova Clínica</h3>
+
+        <form method="POST" action="/clinics/create">
+            <input name="nome" placeholder="Nome" required>
+            <input name="email" placeholder="Email" required>
+            <input name="telefone" placeholder="Telefone" required>
+            <input name="endereco" placeholder="Endereço" required>
+            <button type="submit">Cadastrar</button>
+        </form>
+    </div>
+
+    {% endif %}
+
+    <div class="card">
+        <h3>Clínicas</h3>
+
+        {% if clinics %}
+        <table>
+            <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Endereço</th>
+            </tr>
+
+            {% for c in clinics %}
+            <tr>
+                <td>{{ c.nome }}</td>
+                <td>{{ c.email }}</td>
+                <td>{{ c.telefone }}</td>
+                <td>{{ c.endereco }}</td>
+            </tr>
+            {% endfor %}
+
+        </table>
+        {% else %}
+            <p>Nenhuma clínica cadastrada.</p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>
