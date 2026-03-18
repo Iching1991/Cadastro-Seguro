@@ -72,7 +72,7 @@ def logout():
 
 
 # =====================================================
-# DASHBOARD
+# DASHBOARD (CENTRO DO SISTEMA)
 # =====================================================
 
 @app.route("/dashboard")
@@ -81,31 +81,28 @@ def dashboard():
 
     user = get_current_user()
 
-    return render_template("dashboard.html", user=user)
-
-
-# =====================================================
-# CLINICS
-# =====================================================
-
-@app.route("/clinics")
-@login_required
-def clinics():
-
-    user = get_current_user()
-
-    # DEV NÃO PODE VER DADOS
+    # DEV não pode ver dados
     if user.is_dev():
-        flash("Acesso restrito aos dados.", "danger")
-        return redirect(url_for("dashboard"))
+        clinics = []
 
     # OWNER vê tudo
-    if user.is_owner():
-        data = Clinic.query.all()
-    else:
-        data = Clinic.query.filter_by(user_id=user.id).all()
+    elif user.is_owner():
+        clinics = Clinic.query.order_by(Clinic.id.desc()).all()
 
-    return render_template("clinics.html", clinics=data)
+    # USER vê apenas os seus
+    else:
+        clinics = (
+            Clinic.query
+            .filter_by(user_id=user.id)
+            .order_by(Clinic.id.desc())
+            .all()
+        )
+
+    return render_template(
+        "dashboard.html",
+        user=user,
+        clinics=clinics
+    )
 
 
 # =====================================================
@@ -118,18 +115,62 @@ def create_clinic():
 
     user = get_current_user()
 
+    # DEV não pode cadastrar
+    if user.is_dev():
+        flash("Você não tem permissão para cadastrar.", "danger")
+        return redirect(url_for("dashboard"))
+
+    nome = request.form.get("nome")
+    email = request.form.get("email")
+    telefone = request.form.get("telefone")
+    endereco = request.form.get("endereco")
+
+    if not all([nome, email, telefone, endereco]):
+        flash("Preencha todos os campos.", "warning")
+        return redirect(url_for("dashboard"))
+
     clinic = Clinic(
-        nome=request.form.get("nome"),
-        email=request.form.get("email"),
-        telefone=request.form.get("telefone"),
-        endereco=request.form.get("endereco"),
+        nome=nome,
+        email=email,
+        telefone=telefone,
+        endereco=endereco,
         user_id=user.id
     )
 
     db.session.add(clinic)
     db.session.commit()
 
-    return redirect(url_for("clinics"))
+    flash("Clínica cadastrada com sucesso!", "success")
+
+    return redirect(url_for("dashboard"))
+
+
+# =====================================================
+# DELETE CLINIC (BONUS PROFISSIONAL)
+# =====================================================
+
+@app.route("/clinics/delete/<int:id>", methods=["POST"])
+@login_required
+def delete_clinic(id):
+
+    user = get_current_user()
+    clinic = db.session.get(Clinic, id)
+
+    if not clinic:
+        flash("Clínica não encontrada.", "danger")
+        return redirect(url_for("dashboard"))
+
+    # Permissão: owner ou dono da clínica
+    if not (user.is_owner() or clinic.user_id == user.id):
+        flash("Sem permissão.", "danger")
+        return redirect(url_for("dashboard"))
+
+    db.session.delete(clinic)
+    db.session.commit()
+
+    flash("Clínica removida.", "success")
+
+    return redirect(url_for("dashboard"))
 
 
 # =====================================================
@@ -162,7 +203,7 @@ def seed_users():
 
 
 # =====================================================
-# 🔥 INIT AUTOMÁTICO (ESSENCIAL PARA RAILWAY)
+# INIT AUTOMÁTICO (RAILWAY)
 # =====================================================
 
 with app.app_context():
