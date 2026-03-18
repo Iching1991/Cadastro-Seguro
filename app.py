@@ -7,7 +7,7 @@ from config import Config
 from models import db, User, Clinic
 
 # =====================================================
-# INIT
+# INIT APP
 # =====================================================
 
 app = Flask(__name__)
@@ -18,7 +18,7 @@ bcrypt = Bcrypt(app)
 
 
 # =====================================================
-# INIT BANCO (SEGURO PARA PRODUÇÃO)
+# INIT DATABASE (SAFE - RAILWAY)
 # =====================================================
 
 def init_db():
@@ -54,7 +54,8 @@ def init_db():
 # =====================================================
 
 def get_current_user():
-    return db.session.get(User, session.get("user_id"))
+    user_id = session.get("user_id")
+    return db.session.get(User, user_id) if user_id else None
 
 
 def login_required(f):
@@ -88,8 +89,12 @@ def login():
 
     if request.method == "POST":
 
-        nome = request.form.get("nome")
-        senha = request.form.get("senha")
+        nome = request.form.get("nome", "").strip()
+        senha = request.form.get("senha", "")
+
+        if not nome or not senha:
+            flash("Preencha todos os campos", "warning")
+            return redirect(url_for("login"))
 
         user = User.query.filter_by(nome=nome).first()
 
@@ -115,6 +120,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
+    flash("Sessão encerrada", "info")
     return redirect(url_for("login"))
 
 
@@ -128,15 +134,15 @@ def dashboard():
 
     user = get_current_user()
 
-    # DEV NÃO VÊ DADOS
+    # 🔒 Controle de acesso
     if user.is_dev():
         clinics = []
     elif user.is_owner():
-        clinics = Clinic.query.all()
+        clinics = Clinic.query.order_by(Clinic.id.desc()).all()
     else:
-        clinics = Clinic.query.filter_by(user_id=user.id).all()
+        clinics = Clinic.query.filter_by(user_id=user.id).order_by(Clinic.id.desc()).all()
 
-    users = User.query.all() if user.is_owner() else []
+    users = User.query.order_by(User.nome).all() if user.is_owner() else []
 
     return render_template(
         "dashboard.html",
@@ -147,7 +153,7 @@ def dashboard():
 
 
 # =====================================================
-# CRIAR USUÁRIO (ADMIN)
+# CREATE USER (ADMIN)
 # =====================================================
 
 @app.route("/users/create", methods=["POST"])
@@ -155,9 +161,13 @@ def dashboard():
 @owner_required
 def create_user():
 
-    nome = request.form.get("nome")
-    senha = request.form.get("senha")
-    role = request.form.get("role")
+    nome = request.form.get("nome", "").strip()
+    senha = request.form.get("senha", "")
+    role = request.form.get("role", "user")
+
+    if not nome or not senha:
+        flash("Dados inválidos", "warning")
+        return redirect(url_for("dashboard"))
 
     if User.query.filter_by(nome=nome).first():
         flash("Usuário já existe", "danger")
@@ -178,7 +188,7 @@ def create_user():
 
 
 # =====================================================
-# ALTERAR SENHA
+# CHANGE PASSWORD
 # =====================================================
 
 @app.route("/change-password", methods=["POST"])
@@ -187,8 +197,12 @@ def change_password():
 
     user = get_current_user()
 
-    atual = request.form.get("senha_atual")
-    nova = request.form.get("nova_senha")
+    atual = request.form.get("senha_atual", "")
+    nova = request.form.get("nova_senha", "")
+
+    if not atual or not nova:
+        flash("Preencha os campos", "warning")
+        return redirect(url_for("dashboard"))
 
     if not bcrypt.check_password_hash(user.senha, atual):
         flash("Senha atual incorreta", "danger")
@@ -203,7 +217,7 @@ def change_password():
 
 
 # =====================================================
-# CRIAR CLÍNICA
+# CREATE CLINIC
 # =====================================================
 
 @app.route("/clinics/create", methods=["POST"])
@@ -216,28 +230,45 @@ def create_clinic():
         flash("Sem permissão", "danger")
         return redirect(url_for("dashboard"))
 
+    nome = request.form.get("nome", "").strip()
+    email = request.form.get("email", "").strip()
+    telefone = request.form.get("telefone", "").strip()
+    endereco = request.form.get("endereco", "").strip()
+
+    if not all([nome, email, telefone, endereco]):
+        flash("Preencha todos os campos", "warning")
+        return redirect(url_for("dashboard"))
+
     clinic = Clinic(
-        nome=request.form.get("nome"),
-        email=request.form.get("email"),
-        telefone=request.form.get("telefone"),
-        endereco=request.form.get("endereco"),
+        nome=nome,
+        email=email,
+        telefone=telefone,
+        endereco=endereco,
         user_id=user.id
     )
 
     db.session.add(clinic)
     db.session.commit()
 
-    flash("Clínica cadastrada", "success")
-
+    flash("Clínica cadastrada com sucesso", "success")
     return redirect(url_for("dashboard"))
 
 
 # =====================================================
-# START (RAILWAY SAFE)
+# INIT CONTROLADO (EVITA BUG NO RAILWAY)
 # =====================================================
 
-with app.app_context():
-    init_db()
+@app.before_request
+def initialize_once():
+    if not hasattr(app, "initialized"):
+        with app.app_context():
+            init_db()
+        app.initialized = True
+
+
+# =====================================================
+# RUN LOCAL
+# =====================================================
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
