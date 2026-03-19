@@ -2,147 +2,214 @@
 <html lang="pt-BR">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Dashboard</title>
+<title>Painel Admin - Criar Usuário</title>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<style>
+
+/* ============================
+BODY
+============================ */
+
+body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:100vh;
+    background:linear-gradient(135deg,#eef2f7,#e5eaf2);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+
+
+/* ============================
+CARD
+============================ */
+
+.cadastro-card{
+
+    width:380px;
+
+    padding:35px;
+
+    border-radius:16px;
+
+    background:white;
+
+    box-shadow:
+    0 10px 25px rgba(0,0,0,0.08),
+    0 20px 50px rgba(0,0,0,0.12);
+
+    text-align:center;
+}
+
+
+/* ============================
+TITLE
+============================ */
+
+.cadastro-card h2{
+    margin-bottom:5px;
+}
+
+.sub{
+    font-size:13px;
+    color:#6b7280;
+    margin-bottom:20px;
+}
+
+
+/* ============================
+FORM
+============================ */
+
+form{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+
+/* ============================
+INPUT / SELECT
+============================ */
+
+input, select{
+
+    padding:12px;
+
+    border-radius:8px;
+
+    border:1px solid #d1d5db;
+
+    background:#f9fafb;
+
+    font-size:14px;
+
+    transition:.2s;
+}
+
+input:focus, select:focus{
+    outline:none;
+    background:white;
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,0.15);
+}
+
+
+/* ============================
+BUTTON
+============================ */
+
+button{
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+
+    color:white;
+
+    font-size:15px;
+
+    font-weight:500;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+button:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(37,99,235,0.3);
+}
+
+
+/* ============================
+LINK
+============================ */
+
+.link{
+    margin-top:15px;
+    font-size:14px;
+}
+
+
+/* ============================
+MENSAGEM
+============================ */
+
+.mensagem{
+    margin-top:10px;
+    font-size:14px;
+    color:#16a34a;
+}
+
+.erro{
+    color:#dc2626;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<!-- HEADER -->
-<header class="topbar">
+<div class="cadastro-card">
 
-    <h2>Bem-vindo, {{ user.nome }}</h2>
+    <h2>Painel Admin</h2>
+    <div class="sub">Criar novo usuário</div>
 
-    <a href="{{ url_for('logout') }}" class="logout-btn">
-        Sair
-    </a>
+    <form method="POST" action="{{ url_for('create_user') }}">
 
-</header>
+        <input 
+            type="text" 
+            name="nome" 
+            placeholder="Nome do usuário"
+            required
+        >
 
+        <input 
+            type="password" 
+            name="senha" 
+            placeholder="Senha"
+            required
+        >
 
-<div class="container">
+        <!-- 🔥 ROLE -->
+        <select name="role" required>
+            <option value="user">Usuário</option>
+            <option value="owner">Administrador</option>
+            <option value="dev">Desenvolvedor</option>
+        </select>
 
-    <!-- =========================
-    ALTERAR SENHA
-    ========================= -->
-    <div class="card">
+        <button type="submit">
+            Criar usuário
+        </button>
 
-        <h3>Alterar senha</h3>
+    </form>
 
-        <form method="POST" action="{{ url_for('change_password') }}">
-
-            <input type="password" name="senha_atual" placeholder="Senha atual" required>
-            <input type="password" name="nova_senha" placeholder="Nova senha" required>
-
-            <button type="submit">Alterar senha</button>
-
-        </form>
-
-    </div>
-
-
-    <!-- =========================
-    CADASTRAR CLÍNICA
-    ========================= -->
-    {% if not user.is_dev() %}
-    <div class="card">
-
-        <h3>Cadastrar nova clínica</h3>
-
-        <form method="POST" action="{{ url_for('create_clinic') }}">
-
-            <input type="text" name="nome" placeholder="Nome da clínica" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="text" name="telefone" placeholder="Telefone" required>
-            <input type="text" name="endereco" placeholder="Endereço" required>
-
-            <button type="submit">Cadastrar</button>
-
-        </form>
-
-    </div>
-    {% endif %}
-
-
-    <!-- =========================
-    LISTA DE CLÍNICAS
-    ========================= -->
-    {% if not user.is_dev() %}
-    <div class="card">
-
-        <h3>Clínicas cadastradas</h3>
-
-        <table>
-
-            <tr>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>Telefone</th>
-                <th>Endereço</th>
-            </tr>
-
-            {% for clinic in clinics %}
-            <tr>
-                <td>{{ clinic.nome }}</td>
-                <td>{{ clinic.email }}</td>
-                <td>{{ clinic.telefone }}</td>
-                <td>{{ clinic.endereco }}</td>
-            </tr>
-            {% endfor %}
-
-        </table>
-
-    </div>
-    {% endif %}
-
-
-    <!-- =========================
-    ADMIN - CRIAR USUÁRIO
-    ========================= -->
-    {% if user.is_owner() %}
-    <div class="card">
-
-        <h3>Criar novo usuário</h3>
-
-        <form method="POST" action="{{ url_for('create_user') }}">
-
-            <input type="text" name="nome" placeholder="Nome do usuário" required>
-            <input type="password" name="senha" placeholder="Senha" required>
-
-            <select name="role">
-                <option value="user">Usuário</option>
-                <option value="dev">Dev</option>
-                <option value="owner">Admin</option>
-            </select>
-
-            <button type="submit">Criar usuário</button>
-
-        </form>
-
-    </div>
-    {% endif %}
-
-
-    <!-- =========================
-    MENSAGENS
-    ========================= -->
+    <!-- MENSAGENS -->
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div class="card flash">
-
         {% for category, message in messages %}
-            <p class="{{ category }}">{{ message }}</p>
+            <p class="mensagem {{ category }}">{{ message }}</p>
         {% endfor %}
-
-    </div>
-    {% endif %}
     {% endwith %}
+
+    <!-- VOLTAR -->
+    <div class="link">
+        <a href="{{ url_for('dashboard') }}">← Voltar ao painel</a>
+    </div>
 
 </div>
 
 </body>
+
 </html>
