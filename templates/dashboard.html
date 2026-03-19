@@ -5,24 +5,122 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Painel de Parceiros</title>
+<title>Painel</title>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<style>
+
+/* FUNDO COM LOGO */
+.logo-bg{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:120vw;
+    opacity:0.04;
+    z-index:0;
+    pointer-events:none;
+}
+
+/* CONTAINER MAIS LARGO */
+.container{
+    position:relative;
+    z-index:2;
+    max-width:1200px;
+    margin:auto;
+    padding:40px;
+}
+
+/* GRID */
+.grid{
+    display:grid;
+    grid-template-columns: 400px 1fr;
+    gap:30px;
+}
+
+/* CARD */
+.card{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* HEADER */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.actions{
+    display:flex;
+    gap:10px;
+}
+
+/* BOTÕES */
+.btn{
+    padding:8px 12px;
+    border-radius:6px;
+    font-size:13px;
+    text-decoration:none;
+    color:white;
+}
+
+.btn-logout{ background:#dc2626; }
+.btn-password{ background:#2563eb; }
+
+/* FORM SENHA */
+.password-box{
+    display:none;
+    margin-bottom:20px;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<header>
-    <h2>Bem-vindo, {{ user.nome }}</h2>
-    <a class="logout" href="{{ url_for('logout') }}">Sair</a>
-</header>
+<!-- LOGO FUNDO -->
+<img src="{{ url_for('static', filename='img/logo.png') }}" class="logo-bg">
+
 
 <div class="container">
 
-<!-- ============================
-CADASTRO DE PARCEIROS
-============================ -->
+<!-- HEADER -->
+<div class="header">
+    <h2>Bem-vindo, {{ user.nome }}</h2>
 
+    <div class="actions">
+        <a href="#" class="btn btn-password" onclick="togglePassword()">Alterar senha</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-logout">Sair</a>
+    </div>
+</div>
+
+
+<!-- ALTERAR SENHA -->
+<div class="card password-box" id="passwordBox">
+
+<form method="POST" action="{{ url_for('change_password') }}">
+
+<h3>Alterar senha</h3>
+
+<input type="password" name="senha_atual" placeholder="Senha atual" required>
+<input type="password" name="nova_senha" placeholder="Nova senha" required>
+
+<button type="submit">Salvar nova senha</button>
+
+</form>
+
+</div>
+
+
+<div class="grid">
+
+<!-- FORM CADASTRO -->
 <div class="card">
 
 <h3>Cadastrar Parceiro</h3>
@@ -50,10 +148,7 @@ CADASTRO DE PARCEIROS
 </div>
 
 
-<!-- ============================
-LISTA DE PARCEIROS
-============================ -->
-
+<!-- LISTA -->
 <div class="card">
 
 <h3>Parceiros cadastrados</h3>
@@ -83,6 +178,16 @@ LISTA DE PARCEIROS
 </div>
 
 </div>
+
+</div>
+
+
+<script>
+function togglePassword(){
+    const box = document.getElementById("passwordBox");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+}
+</script>
 
 </body>
 </html>
