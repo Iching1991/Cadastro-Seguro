@@ -7,21 +7,24 @@ class Config:
     # =====================================================
     # 🔐 SEGURANÇA
     # =====================================================
-    SECRET_KEY = os.environ.get("SECRET_KEY", "troque-em-producao")
+    SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-key"
 
 
     # =====================================================
-    # 🗄️ BANCO DE DADOS
+    # 🗄️ BANCO DE DADOS (BLINDADO)
     # =====================================================
-    DATABASE_URL = os.environ.get("DATABASE_URL", "")
+    DATABASE_URL = os.environ.get("DATABASE_URL")
 
-    # Railway usa postgres:// → corrigir para SQLAlchemy
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    # 🔥 Se NÃO tiver DATABASE_URL → usa SQLite (evita crash)
+    if not DATABASE_URL:
+        SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIR, "vetclinic.db")
 
-    SQLALCHEMY_DATABASE_URI = DATABASE_URL or (
-        "sqlite:///" + os.path.join(BASE_DIR, "vetclinic.db")
-    )
+    else:
+        # Corrige prefixo do Railway
+        if DATABASE_URL.startswith("postgres://"):
+            DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -38,17 +41,14 @@ class Config:
     LOGO_FOLDER   = os.path.join(UPLOAD_FOLDER, "logos")
 
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
-
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
 
 
     # =====================================================
-    # 🍪 SESSÃO / COOKIES
+    # 🍪 SESSÃO
     # =====================================================
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-
-    # Só ativa HTTPS cookie em produção (Railway)
     SESSION_COOKIE_SECURE = os.environ.get("RAILWAY_ENVIRONMENT") == "production"
 
 
