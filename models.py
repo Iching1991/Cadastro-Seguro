@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 # =====================================================
-# INIT DB (NÃO IMPORTAR APP AQUI)
+# INIT DB
 # =====================================================
 
 db = SQLAlchemy()
@@ -19,7 +19,7 @@ class User(db.Model):
 
     nome = db.Column(
         db.String(120),
-        unique=True,        # login por nome
+        unique=True,
         nullable=False,
         index=True
     )
@@ -32,7 +32,7 @@ class User(db.Model):
     role = db.Column(
         db.String(20),
         nullable=False,
-        default="user",     # user | owner | dev
+        default="user",  # user | owner | dev
         index=True
     )
 
@@ -42,18 +42,15 @@ class User(db.Model):
         nullable=False
     )
 
-    # RELAÇÃO COM CLINICAS
+    # RELAÇÃO
     clinics = db.relationship(
         "Clinic",
         backref="owner",
-        lazy="select",
+        lazy=True,
         cascade="all, delete-orphan"
     )
 
-    # =====================================================
     # PERMISSÕES
-    # =====================================================
-
     def is_owner(self):
         return self.role == "owner"
 
@@ -63,15 +60,12 @@ class User(db.Model):
     def is_user(self):
         return self.role == "user"
 
-    # =====================================================
-
     def __repr__(self):
-        return f"<User id={self.id} nome={self.nome} role={self.role}>"
-
+        return f"<User {self.nome} ({self.role})>"
 
 
 # =====================================================
-# CLINIC
+# CLINIC / VETERINÁRIO
 # =====================================================
 
 class Clinic(db.Model):
@@ -79,9 +73,24 @@ class Clinic(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
+    # 🔥 NOME PRINCIPAL
     nome = db.Column(
         db.String(150),
         nullable=False,
+        index=True
+    )
+
+    # 🔥 NOVO: RESPONSÁVEL
+    responsavel = db.Column(
+        db.String(150),
+        nullable=False,
+        index=True
+    )
+
+    # 🔥 NOVO: TIPO
+    tipo = db.Column(
+        db.String(20),
+        nullable=False,  # "clinica" ou "veterinario"
         index=True
     )
 
@@ -116,5 +125,11 @@ class Clinic(db.Model):
 
     # =====================================================
 
+    def is_clinic(self):
+        return self.tipo == "clinica"
+
+    def is_vet(self):
+        return self.tipo == "veterinario"
+
     def __repr__(self):
-        return f"<Clinic id={self.id} nome={self.nome}>"
+        return f"<Clinic {self.nome} ({self.tipo})>"
