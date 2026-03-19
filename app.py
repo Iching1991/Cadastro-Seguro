@@ -18,7 +18,7 @@ bcrypt = Bcrypt(app)
 
 
 # =====================================================
-# INIT DATABASE (SAFE - RAILWAY)
+# INIT DATABASE
 # =====================================================
 
 def init_db():
@@ -34,10 +34,7 @@ def init_db():
     ]
 
     for nome, senha, role in users:
-
-        user = User.query.filter_by(nome=nome).first()
-
-        if not user:
+        if not User.query.filter_by(nome=nome).first():
             senha_hash = bcrypt.generate_password_hash(senha).decode()
 
             db.session.add(User(
@@ -134,7 +131,6 @@ def dashboard():
 
     user = get_current_user()
 
-    # 🔒 Controle de acesso
     if user.is_dev():
         clinics = []
     elif user.is_owner():
@@ -153,7 +149,7 @@ def dashboard():
 
 
 # =====================================================
-# CREATE USER (ADMIN)
+# CREATE USER
 # =====================================================
 
 @app.route("/users/create", methods=["POST"])
@@ -175,12 +171,7 @@ def create_user():
 
     senha_hash = bcrypt.generate_password_hash(senha).decode()
 
-    db.session.add(User(
-        nome=nome,
-        senha=senha_hash,
-        role=role
-    ))
-
+    db.session.add(User(nome=nome, senha=senha_hash, role=role))
     db.session.commit()
 
     flash("Usuário criado com sucesso", "success")
@@ -209,7 +200,6 @@ def change_password():
         return redirect(url_for("dashboard"))
 
     user.senha = bcrypt.generate_password_hash(nova).decode()
-
     db.session.commit()
 
     flash("Senha alterada com sucesso", "success")
@@ -217,7 +207,7 @@ def change_password():
 
 
 # =====================================================
-# CREATE CLINIC
+# CREATE CLINIC / VET
 # =====================================================
 
 @app.route("/clinics/create", methods=["POST"])
@@ -230,17 +220,40 @@ def create_clinic():
         flash("Sem permissão", "danger")
         return redirect(url_for("dashboard"))
 
-    nome = request.form.get("nome", "").strip()
+    tipo = request.form.get("tipo")
+
+    nome_clinica = request.form.get("nome_clinica", "").strip()
+    nome_vet = request.form.get("nome_vet", "").strip()
+    responsavel = request.form.get("responsavel", "").strip()
+
     email = request.form.get("email", "").strip()
     telefone = request.form.get("telefone", "").strip()
     endereco = request.form.get("endereco", "").strip()
 
-    if not all([nome, email, telefone, endereco]):
+    # 🔥 VALIDAÇÃO
+    if not all([tipo, email, telefone, endereco]):
         flash("Preencha todos os campos", "warning")
         return redirect(url_for("dashboard"))
 
+    if tipo == "clinica":
+        if not nome_clinica or not responsavel:
+            flash("Informe nome da clínica e responsável", "warning")
+            return redirect(url_for("dashboard"))
+
+        nome = nome_clinica
+
+    else:  # veterinario
+        if not nome_vet:
+            flash("Informe o nome do veterinário", "warning")
+            return redirect(url_for("dashboard"))
+
+        nome = nome_vet
+        responsavel = nome_vet  # vet é o próprio responsável
+
     clinic = Clinic(
         nome=nome,
+        responsavel=responsavel,
+        tipo=tipo,
         email=email,
         telefone=telefone,
         endereco=endereco,
@@ -250,12 +263,12 @@ def create_clinic():
     db.session.add(clinic)
     db.session.commit()
 
-    flash("Clínica cadastrada com sucesso", "success")
+    flash("Cadastro realizado com sucesso", "success")
     return redirect(url_for("dashboard"))
 
 
 # =====================================================
-# INIT CONTROLADO (EVITA BUG NO RAILWAY)
+# INIT (RAILWAY SAFE)
 # =====================================================
 
 @app.before_request
