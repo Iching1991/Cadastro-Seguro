@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask import Flask, render_template, request, redirect, session, url_for, flash, Response
 from flask_bcrypt import Bcrypt
 from functools import wraps
 import os
+import csv
 
 from config import Config
 from models import db, User, Clinic
@@ -36,18 +37,13 @@ def init_db():
     for nome, senha, role in users:
 
         senha_hash = bcrypt.generate_password_hash(senha).decode()
-
         user = User.query.filter_by(nome=nome).first()
 
         if user:
             user.senha = senha_hash
             user.role = role
         else:
-            db.session.add(User(
-                nome=nome,
-                senha=senha_hash,
-                role=role
-            ))
+            db.session.add(User(nome=nome, senha=senha_hash, role=role))
 
     db.session.commit()
 
@@ -100,7 +96,6 @@ def login():
 
         session["user_id"] = user.id
 
-        # 🔥 DIRETO PARA DASHBOARD
         return redirect(url_for("dashboard"))
 
     return render_template("login.html")
@@ -117,7 +112,7 @@ def logout():
 
 
 # =====================================================
-# DASHBOARD (PRINCIPAL)
+# DASHBOARD
 # =====================================================
 
 @app.route("/dashboard")
@@ -126,7 +121,6 @@ def dashboard():
 
     user = get_current_user()
 
-    # 🔒 controle simples
     if user.is_dev():
         clinics = []
     elif user.is_owner():
@@ -143,7 +137,86 @@ def dashboard():
 
 
 # =====================================================
-# CREATE PARCEIRO (CLINICA / VET)
+# EXPORTAR CSV (ADMIN)
+# =====================================================
+
+@app.route("/export")
+@login_required
+def export_data():
+
+    user = get_current_user()
+
+    if not user.is_owner():
+        flash("Acesso restrito", "danger")
+        return redirect(url_for("dashboard"))
+
+    def generate():
+        yield "Nome,Responsavel,Tipo,Email,Telefone,Endereco\n"
+
+        for c in Clinic.query.all():
+            yield f"{c.nome},{c.responsavel},{c.tipo},{c.email},{c.telefone},{c.endereco}\n"
+
+    return Response(
+        generate(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=parceiros.csv"}
+    )
+
+
+# =====================================================
+# PAINEL DEV
+# =====================================================
+
+@app.route("/dev")
+@login_required
+def dev_panel():
+
+    user = get_current_user()
+
+    if not user.is_dev():
+        flash("Acesso restrito", "danger")
+        return redirect(url_for("dashboard"))
+
+    total_users = User.query.count()
+    total_clinics = Clinic.query.count()
+
+    return render_template(
+        "dev.html",
+        total_users=total_users,
+        total_clinics=total_clinics
+    )
+
+
+# =====================================================
+# ALTERAR SENHA (TODOS)
+# =====================================================
+
+@app.route("/change-password", methods=["POST"])
+@login_required
+def change_password():
+
+    user = get_current_user()
+
+    atual = request.form.get("senha_atual", "")
+    nova = request.form.get("nova_senha", "")
+
+    if not atual or not nova:
+        flash("Preencha os campos", "warning")
+        return redirect(url_for("dashboard"))
+
+    if not bcrypt.check_password_hash(user.senha, atual):
+        flash("Senha atual incorreta", "danger")
+        return redirect(url_for("dashboard"))
+
+    user.senha = bcrypt.generate_password_hash(nova).decode()
+    db.session.commit()
+
+    flash("Senha alterada com sucesso", "success")
+    return redirect(url_for("dashboard"))
+
+
+# =====================================================
+# CREATE PARCEIRO
 # =====================================================
 
 @app.route("/clinics/create", methods=["POST"])
@@ -166,7 +239,6 @@ def create_clinic():
     telefone = request.form.get("telefone", "").strip()
     endereco = request.form.get("endereco", "").strip()
 
-    # validação básica
     if not all([tipo, email, telefone, endereco]):
         flash("Preencha todos os campos", "warning")
         return redirect(url_for("dashboard"))
@@ -204,7 +276,7 @@ def create_clinic():
 
 
 # =====================================================
-# INIT (SAFE RAILWAY)
+# INIT SAFE (RAILWAY)
 # =====================================================
 
 @app.before_request
