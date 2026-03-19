@@ -18,7 +18,7 @@ bcrypt = Bcrypt(app)
 
 
 # =====================================================
-# INIT DATABASE
+# INIT DATABASE (CORRIGIDO)
 # =====================================================
 
 def init_db():
@@ -34,9 +34,16 @@ def init_db():
     ]
 
     for nome, senha, role in users:
-        if not User.query.filter_by(nome=nome).first():
-            senha_hash = bcrypt.generate_password_hash(senha).decode()
 
+        senha_hash = bcrypt.generate_password_hash(senha).decode()
+
+        user = User.query.filter_by(nome=nome).first()
+
+        if user:
+            # 🔥 ATUALIZA SEMPRE
+            user.senha = senha_hash
+            user.role = role
+        else:
             db.session.add(User(
                 nome=nome,
                 senha=senha_hash,
@@ -136,7 +143,8 @@ def dashboard():
     elif user.is_owner():
         clinics = Clinic.query.order_by(Clinic.id.desc()).all()
     else:
-        clinics = Clinic.query.filter_by(user_id=user.id).order_by(Clinic.id.desc()).all()
+        clinics = Clinic.query.filter_by(user_id=user.id)\
+                              .order_by(Clinic.id.desc()).all()
 
     users = User.query.order_by(User.nome).all() if user.is_owner() else []
 
@@ -149,7 +157,7 @@ def dashboard():
 
 
 # =====================================================
-# CREATE USER
+# CREATE USER (ADMIN)
 # =====================================================
 
 @app.route("/users/create", methods=["POST"])
@@ -207,7 +215,7 @@ def change_password():
 
 
 # =====================================================
-# CREATE CLINIC / VET
+# CREATE CLINIC / VETERINÁRIO
 # =====================================================
 
 @app.route("/clinics/create", methods=["POST"])
@@ -230,7 +238,6 @@ def create_clinic():
     telefone = request.form.get("telefone", "").strip()
     endereco = request.form.get("endereco", "").strip()
 
-    # 🔥 VALIDAÇÃO
     if not all([tipo, email, telefone, endereco]):
         flash("Preencha todos os campos", "warning")
         return redirect(url_for("dashboard"))
@@ -242,13 +249,13 @@ def create_clinic():
 
         nome = nome_clinica
 
-    else:  # veterinario
+    else:
         if not nome_vet:
             flash("Informe o nome do veterinário", "warning")
             return redirect(url_for("dashboard"))
 
         nome = nome_vet
-        responsavel = nome_vet  # vet é o próprio responsável
+        responsavel = nome_vet
 
     clinic = Clinic(
         nome=nome,
@@ -268,7 +275,7 @@ def create_clinic():
 
 
 # =====================================================
-# INIT (RAILWAY SAFE)
+# INIT SAFE (RAILWAY)
 # =====================================================
 
 @app.before_request
