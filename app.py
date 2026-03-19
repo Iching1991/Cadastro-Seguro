@@ -29,7 +29,7 @@ def init_db():
         ("Agnaldo Angelico", "123456", "user"),
         ("Gabriela Saidel", "123456", "user"),
         ("Flávia Prado", "123456", "user"),
-        ("Kerine Onuki", "123456", "user"),
+        ("Karine Onuki", "123456", "user"),
         ("Agnaldo Baldissera", "123456", "dev"),
     ]
 
