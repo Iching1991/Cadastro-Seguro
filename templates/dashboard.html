@@ -11,7 +11,7 @@
 
 <style>
 
-/* FUNDO COM LOGO */
+/* FUNDO */
 .logo-bg{
     position:fixed;
     top:50%;
@@ -23,7 +23,7 @@
     pointer-events:none;
 }
 
-/* CONTAINER MAIS LARGO */
+/* CONTAINER */
 .container{
     position:relative;
     z-index:2;
@@ -32,27 +32,12 @@
     padding:40px;
 }
 
-/* GRID */
-.grid{
-    display:grid;
-    grid-template-columns: 400px 1fr;
-    gap:30px;
-}
-
-/* CARD */
-.card{
-    background:white;
-    padding:25px;
-    border-radius:12px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.08);
-}
-
 /* HEADER */
 .header{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:20px;
+    margin-bottom:25px;
 }
 
 .actions{
@@ -62,17 +47,77 @@
 
 /* BOTÕES */
 .btn{
-    padding:8px 12px;
+    padding:8px 14px;
     border-radius:6px;
     font-size:13px;
     text-decoration:none;
     color:white;
+    transition:.2s;
 }
 
-.btn-logout{ background:#dc2626; }
-.btn-password{ background:#2563eb; }
+.btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
 
-/* FORM SENHA */
+.btn-password{ background:#2563eb; }
+.btn-logout{ background:#dc2626; }
+.btn-export{ background:#16a34a; }
+.btn-dev{ background:#7c3aed; }
+
+/* GRID */
+.grid{
+    display:grid;
+    grid-template-columns: 420px 1fr;
+    gap:30px;
+}
+
+/* CARD */
+.card{
+    background:white;
+    padding:25px;
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* FORM */
+form{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+input, select{
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #d1d5db;
+    background:#f9fafb;
+}
+
+input:focus, select:focus{
+    outline:none;
+    background:white;
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,0.15);
+}
+
+/* TABELA */
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th, td{
+    padding:10px;
+    border-bottom:1px solid #eee;
+    text-align:left;
+}
+
+th{
+    background:#f3f4f6;
+}
+
+/* SENHA */
 .password-box{
     display:none;
     margin-bottom:20px;
@@ -92,12 +137,33 @@
 
 <!-- HEADER -->
 <div class="header">
+
     <h2>Bem-vindo, {{ user.nome }}</h2>
 
     <div class="actions">
-        <a href="#" class="btn btn-password" onclick="togglePassword()">Alterar senha</a>
-        <a href="{{ url_for('logout') }}" class="btn btn-logout">Sair</a>
+
+        <a href="#" class="btn btn-password" onclick="togglePassword()">
+            Alterar senha
+        </a>
+
+        {% if user.role == "owner" %}
+        <a href="{{ url_for('export_data') }}" class="btn btn-export">
+            Exportar CSV
+        </a>
+        {% endif %}
+
+        {% if user.role == "dev" %}
+        <a href="{{ url_for('dev_panel') }}" class="btn btn-dev">
+            Painel Dev
+        </a>
+        {% endif %}
+
+        <a href="{{ url_for('logout') }}" class="btn btn-logout">
+            Sair
+        </a>
+
     </div>
+
 </div>
 
 
@@ -120,7 +186,7 @@
 
 <div class="grid">
 
-<!-- FORM CADASTRO -->
+<!-- CADASTRO -->
 <div class="card">
 
 <h3>Cadastrar Parceiro</h3>
@@ -134,7 +200,6 @@
 
 <input type="text" name="nome_clinica" placeholder="Nome da clínica">
 <input type="text" name="nome_vet" placeholder="Nome do veterinário">
-
 <input type="text" name="responsavel" placeholder="Responsável">
 
 <input type="email" name="email" placeholder="Email" required>
