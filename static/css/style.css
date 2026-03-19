@@ -19,19 +19,16 @@ BODY
 height:100vh;
 
 display:flex;
-
-flex-direction:column; /* 🔥 IMPORTANTE */
+flex-direction:column;
 
 align-items:center;
-
 justify-content:center;
 
-gap:20px; /* espaço entre logo e card */
+gap:30px;
 
-background:#eef2f7;
+background:linear-gradient(135deg,#eef2f7,#e5eaf2);
 
 position:relative;
-
 overflow:hidden;
 
 }
@@ -52,7 +49,7 @@ transform:translate(-50%,-50%);
 
 width:130vw;
 
-opacity:0.05;
+opacity:0.04;
 
 pointer-events:none;
 
@@ -68,19 +65,17 @@ LOGO TOPO
 .logo-top{
 
 position:relative;
-
 z-index:2;
 
 text-align:center;
 
+animation:fadeDown .6s ease;
+
 }
 
 .logo-top img{
-
-width:280px;
-
+width:260px;
 max-width:90%;
-
 }
 
 
@@ -91,20 +86,23 @@ LOGIN CARD
 .login-card{
 
 position:relative;
-
 z-index:2;
 
 width:360px;
 
 padding:35px;
 
-border-radius:14px;
+border-radius:16px;
 
 background:white;
 
-box-shadow:0 25px 50px rgba(0,0,0,0.12);
+box-shadow:
+0 10px 25px rgba(0,0,0,0.08),
+0 20px 50px rgba(0,0,0,0.12);
 
 text-align:center;
+
+animation:fadeUp .6s ease;
 
 }
 
@@ -118,7 +116,6 @@ TITLE
 margin-bottom:20px;
 
 font-weight:600;
-
 color:#1f2937;
 
 }
@@ -129,13 +126,9 @@ FORM
 ============================ */
 
 form{
-
 display:flex;
-
 flex-direction:column;
-
-gap:12px;
-
+gap:14px;
 }
 
 
@@ -147,11 +140,13 @@ input{
 
 padding:12px;
 
-border-radius:6px;
+border-radius:8px;
 
 border:1px solid #d1d5db;
 
 font-size:14px;
+
+background:#f9fafb;
 
 transition:all .2s ease;
 
@@ -161,9 +156,11 @@ input:focus{
 
 outline:none;
 
+background:white;
+
 border-color:#2563eb;
 
-box-shadow:0 0 0 2px rgba(37,99,235,0.15);
+box-shadow:0 0 0 3px rgba(37,99,235,0.15);
 
 }
 
@@ -178,13 +175,15 @@ padding:12px;
 
 border:none;
 
-border-radius:6px;
+border-radius:8px;
 
-background:#2563eb;
+background:linear-gradient(135deg,#2563eb,#1d4ed8);
 
 color:white;
 
 font-size:15px;
+
+font-weight:500;
 
 cursor:pointer;
 
@@ -194,9 +193,9 @@ transition:.2s ease;
 
 button:hover{
 
-background:#1d4ed8;
+transform:translateY(-2px);
 
-transform:translateY(-1px);
+box-shadow:0 8px 20px rgba(37,99,235,0.3);
 
 }
 
@@ -207,10 +206,14 @@ FLASH
 
 .flash{
 
-margin-top:10px;
+margin-top:12px;
 
 font-size:14px;
 
+}
+
+.flash p{
+margin-top:5px;
 }
 
 .flash .success{
@@ -223,4 +226,31 @@ color:#dc2626;
 
 .flash .warning{
 color:#f59e0b;
+}
+
+
+/* ============================
+ANIMAÇÕES
+============================ */
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+@keyframes fadeDown{
+from{
+opacity:0;
+transform:translateY(-20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
 }
