@@ -6,210 +6,91 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Painel Admin - Criar Usuário</title>
+<title>Painel</title>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-<style>
-
-/* ============================
-BODY
-============================ */
-
-body{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    height:100vh;
-    background:linear-gradient(135deg,#eef2f7,#e5eaf2);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-}
-
-
-/* ============================
-CARD
-============================ */
-
-.cadastro-card{
-
-    width:380px;
-
-    padding:35px;
-
-    border-radius:16px;
-
-    background:white;
-
-    box-shadow:
-    0 10px 25px rgba(0,0,0,0.08),
-    0 20px 50px rgba(0,0,0,0.12);
-
-    text-align:center;
-}
-
-
-/* ============================
-TITLE
-============================ */
-
-.cadastro-card h2{
-    margin-bottom:5px;
-}
-
-.sub{
-    font-size:13px;
-    color:#6b7280;
-    margin-bottom:20px;
-}
-
-
-/* ============================
-FORM
-============================ */
-
-form{
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-}
-
-
-/* ============================
-INPUT / SELECT
-============================ */
-
-input, select{
-
-    padding:12px;
-
-    border-radius:8px;
-
-    border:1px solid #d1d5db;
-
-    background:#f9fafb;
-
-    font-size:14px;
-
-    transition:.2s;
-}
-
-input:focus, select:focus{
-    outline:none;
-    background:white;
-    border-color:#2563eb;
-    box-shadow:0 0 0 3px rgba(37,99,235,0.15);
-}
-
-
-/* ============================
-BUTTON
-============================ */
-
-button{
-
-    padding:12px;
-
-    border:none;
-
-    border-radius:8px;
-
-    background:linear-gradient(135deg,#2563eb,#1d4ed8);
-
-    color:white;
-
-    font-size:15px;
-
-    font-weight:500;
-
-    cursor:pointer;
-
-    transition:.2s;
-}
-
-button:hover{
-    transform:translateY(-2px);
-    box-shadow:0 8px 20px rgba(37,99,235,0.3);
-}
-
-
-/* ============================
-LINK
-============================ */
-
-.link{
-    margin-top:15px;
-    font-size:14px;
-}
-
-
-/* ============================
-MENSAGEM
-============================ */
-
-.mensagem{
-    margin-top:10px;
-    font-size:14px;
-    color:#16a34a;
-}
-
-.erro{
-    color:#dc2626;
-}
-
-</style>
 
 </head>
 
 <body>
 
-<div class="cadastro-card">
+<header>
+    <h2>Bem-vindo, {{ user.nome }}</h2>
+    <a class="logout" href="{{ url_for('logout') }}">Sair</a>
+</header>
 
-    <h2>Painel Admin</h2>
-    <div class="sub">Criar novo usuário</div>
+<div class="container">
 
-    <form method="POST" action="{{ url_for('create_user') }}">
+<!-- CADASTRO -->
+<div class="card">
 
-        <input 
-            type="text" 
-            name="nome" 
-            placeholder="Nome do usuário"
-            required
-        >
+<h3>Cadastrar Parceiro</h3>
 
-        <input 
-            type="password" 
-            name="senha" 
-            placeholder="Senha"
-            required
-        >
+<form method="POST" action="{{ url_for('create_clinic') }}">
 
-        <!-- 🔥 ROLE -->
-        <select name="role" required>
-            <option value="user">Usuário</option>
-            <option value="owner">Administrador</option>
-            <option value="dev">Desenvolvedor</option>
-        </select>
+<select name="tipo" required>
+    <option value="clinica">Clínica</option>
+    <option value="veterinario">Veterinário</option>
+</select>
 
-        <button type="submit">
-            Criar usuário
-        </button>
+<input type="text" name="nome_clinica" placeholder="Nome da clínica">
+<input type="text" name="nome_vet" placeholder="Nome do veterinário">
 
-    </form>
+<input type="text" name="responsavel" placeholder="Responsável">
 
-    <!-- MENSAGENS -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for category, message in messages %}
-            <p class="mensagem {{ category }}">{{ message }}</p>
-        {% endfor %}
-    {% endwith %}
+<input type="email" name="email" placeholder="Email" required>
+<input type="text" name="telefone" placeholder="Telefone" required>
+<input type="text" name="endereco" placeholder="Endereço" required>
 
-    <!-- VOLTAR -->
-    <div class="link">
-        <a href="{{ url_for('dashboard') }}">← Voltar ao painel</a>
-    </div>
+<button type="submit">Cadastrar</button>
+
+</form>
+
+</div>
+
+<!-- LISTA -->
+<div class="card">
+
+<h3>Parceiros cadastrados</h3>
+
+<table>
+
+<tr>
+<th>Nome</th>
+<th>Responsável</th>
+<th>Tipo</th>
+<th>Email</th>
+<th>Telefone</th>
+</tr>
+
+{% for c in clinics %}
+<tr>
+<td>{{ c.nome }}</td>
+<td>{{ c.responsavel }}</td>
+<td>{{ c.tipo }}</td>
+<td>{{ c.email }}</td>
+<td>{{ c.telefone }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</div>
+
+<!-- ADMIN -->
+{% if user.is_owner() %}
+
+<div class="card">
+
+<a href="{{ url_for('admin') }}">
+    ⚙️ Gerenciar usuários
+</a>
+
+</div>
+
+{% endif %}
 
 </div>
 
 </body>
-
 </html>
