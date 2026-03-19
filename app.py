@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, session, url_for, f
 from flask_bcrypt import Bcrypt
 from functools import wraps
 import os
-import csv
 
 from config import Config
 from models import db, User, Clinic
@@ -19,7 +18,7 @@ bcrypt = Bcrypt(app)
 
 
 # =====================================================
-# INIT DATABASE (SEMPRE ATUALIZA SENHA)
+# INIT DATABASE (CORRIGIDO E FORÇADO)
 # =====================================================
 
 def init_db():
@@ -36,14 +35,19 @@ def init_db():
 
     for nome, senha, role in users:
 
-        senha_hash = bcrypt.generate_password_hash(senha).decode()
         user = User.query.filter_by(nome=nome).first()
+        senha_hash = bcrypt.generate_password_hash(senha).decode()
 
         if user:
+            # 🔥 FORÇA ATUALIZAÇÃO SEMPRE (CORREÇÃO DO SEU BUG)
             user.senha = senha_hash
             user.role = role
         else:
-            db.session.add(User(nome=nome, senha=senha_hash, role=role))
+            db.session.add(User(
+                nome=nome,
+                senha=senha_hash,
+                role=role
+            ))
 
     db.session.commit()
 
@@ -54,7 +58,9 @@ def init_db():
 
 def get_current_user():
     user_id = session.get("user_id")
-    return db.session.get(User, user_id) if user_id else None
+    if not user_id:
+        return None
+    return db.session.get(User, user_id)
 
 
 def login_required(f):
@@ -137,7 +143,7 @@ def dashboard():
 
 
 # =====================================================
-# EXPORTAR CSV (ADMIN)
+# EXPORTAR CSV (CORRIGIDO)
 # =====================================================
 
 @app.route("/export")
@@ -146,20 +152,24 @@ def export_data():
 
     user = get_current_user()
 
-    if not user.is_owner():
+    # 🔥 PROTEÇÃO REAL
+    if not user or user.role.lower() != "owner":
         flash("Acesso restrito", "danger")
         return redirect(url_for("dashboard"))
 
-    def generate():
-        yield "Nome,Responsavel,Tipo,Email,Telefone,Endereco\n"
+    clinics = Clinic.query.all()
 
-        for c in Clinic.query.all():
-            yield f"{c.nome},{c.responsavel},{c.tipo},{c.email},{c.telefone},{c.endereco}\n"
+    output = "Nome,Responsavel,Tipo,Email,Telefone,Endereco\n"
+
+    for c in clinics:
+        output += f"{c.nome},{c.responsavel},{c.tipo},{c.email},{c.telefone},{c.endereco}\n"
 
     return Response(
-        generate(),
+        output,
         mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=parceiros.csv"}
+        headers={
+            "Content-Disposition": "attachment; filename=parceiros.csv"
+        }
     )
 
 
@@ -173,7 +183,7 @@ def dev_panel():
 
     user = get_current_user()
 
-    if not user.is_dev():
+    if not user or user.role.lower() != "dev":
         flash("Acesso restrito", "danger")
         return redirect(url_for("dashboard"))
 
@@ -188,7 +198,7 @@ def dev_panel():
 
 
 # =====================================================
-# ALTERAR SENHA (TODOS)
+# ALTERAR SENHA
 # =====================================================
 
 @app.route("/change-password", methods=["POST"])
@@ -276,15 +286,11 @@ def create_clinic():
 
 
 # =====================================================
-# INIT SAFE (RAILWAY)
+# INIT (CORRIGIDO - EXECUTA UMA VEZ)
 # =====================================================
 
-@app.before_request
-def initialize_once():
-    if not hasattr(app, "initialized"):
-        with app.app_context():
-            init_db()
-        app.initialized = True
+with app.app_context():
+    init_db()
 
 
 # =====================================================
