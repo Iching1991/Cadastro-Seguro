@@ -3,14 +3,28 @@ def cadastro():
 
     if request.method == "POST":
 
-        nome = request.form["nome"]
-        email = request.form["email"]
-        senha = generate_password_hash(request.form["senha"])
+        nome = request.form.get("nome", "").strip()
+        senha = request.form.get("senha", "")
+
+        if not nome or not senha:
+            return render_template(
+                "cadastro.html",
+                mensagem="Preencha todos os campos"
+            )
+
+        # 🔥 verifica se já existe
+        if User.query.filter_by(nome=nome).first():
+            return render_template(
+                "cadastro.html",
+                mensagem="Usuário já existe"
+            )
+
+        senha_hash = bcrypt.generate_password_hash(senha).decode()
 
         user = User(
             nome=nome,
-            email=email,
-            senha=senha
+            senha=senha_hash,
+            role="user"  # 🔥 padrão
         )
 
         db.session.add(user)
